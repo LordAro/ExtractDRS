@@ -3,6 +3,10 @@
 #include <cstring>
 #include <sstream>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <dirent.h>
+#include <errno.h>
+#include <vector>
 
 using namespace std;
 
@@ -55,6 +59,28 @@ void FioCreateDirectory(const char *name)
 #endif
 }
 
+vector<string> ListFiles(const char *path)
+{
+	DIR *dirFile = opendir(path);
+	vector<string> filelist;
+	if (dirFile) {
+		struct dirent *hFile;
+		errno = 0;
+		while ((hFile = readdir(dirFile)) != NULL) {
+			// Ignore hidden files
+			if (hFile->d_name[0] == '.') continue;
+
+			if (strstr(hFile->d_name, ".drs")) {
+				string fullfile = path;
+				fullfile += hFile->d_name;
+				cout << "Found: " << fullfile << "\n";
+				filelist.push_back(fullfile);
+			}
+		}
+	}
+	return filelist;
+}
+
 static const int HEADER_SIZE = 64;
 static const int COPYRIGHT_SIZE = 40;
 static const int VERSION_SIZE = 4;
@@ -63,11 +89,26 @@ static const int TYPE_SIZE = 12;
 static const int TABLE_SIZE = 12;
 static const int EXTENSTION_SIZE = 3;
 
-int main (int argc, char **argv)
+int main(int argc, char **argv)
 {
-	ifstream file;
-	file.open("gamedata.drs", ios::binary | ios::ate);
-	if (file.is_open()) {
+	if (argc != 2 || argv[1][strlen(argv[1]) - 1] != '/') {
+		cout << "Only one argument allowed, which must end in '/'\n";
+		return 1;
+	}
+	std::string drsdirname = argv[1];
+	vector<string> filelist = ListFiles(drsdirname.c_str());
+
+	FioCreateDirectory("extracted/");
+	for (int i = 0; i < filelist.size(); i++) {
+		string filename = filelist[i].substr(filelist[i].find('/') + 1, filelist[i].length());
+		ifstream file;
+		cout << "Reading " << filelist[i] << '\n';
+		file.open(filelist[i].c_str(), ios::in | ios::binary | ios::ate);
+		if (!file.is_open()) {
+			cout << "Error opening file: " << filelist[i] << '\n';
+			continue;
+		}
+
 		/* Get the whole file */
 		int size = (int)file.tellg();
 		unsigned char *memblock = new unsigned char[size];
@@ -116,36 +157,37 @@ int main (int argc, char **argv)
 			printf("\n");
 
 			tableinfos[i].fileinfo = new Table[tableinfos[i].numfiles];
-			FioCreateDirectory("extracted/");
-			FioCreateDirectory("extracted/gamedata/");
+			string filedir = "extracted/" + filename + '/';
+			cout << "Files being extracted to: " << filedir << '\n';
+			FioCreateDirectory(filedir.c_str());
 			for (int j = 0; j < tableinfos[i].numfiles; j++) {
 				string tabletext = drstext.substr(tableinfos[i].tbloffset + (j * TABLE_SIZE), TABLE_SIZE);
 				tableinfos[i].fileinfo[j].fileid = str2long(tabletext, 0);
 				tableinfos[i].fileinfo[j].fileoffset = str2long(tabletext, 4);
 				tableinfos[i].fileinfo[j].filesize = str2long(tabletext, 8);
 
-				cout << "\t\tTable No." << j + 1 << ":";
+			/*	cout << "\t\tTable No." << j + 1 << ":";
 				cout << "\tFile ID\t\t:" << tableinfos[i].fileinfo[j].fileid << "\n";
 				cout << "\t\t\t\tFile Offset\t:" << tableinfos[i].fileinfo[j].fileoffset << "\n";
-				cout << "\t\t\t\tFile Size\t:" << tableinfos[i].fileinfo[j].filesize << "\n";
+				cout << "\t\t\t\tFile Size\t:" << tableinfos[i].fileinfo[j].filesize << "\n"; */
 
-				ofstream outputfile;
-				string filename("extracted/gamedata/");
 				stringstream ss;
 				ss << tableinfos[i].fileinfo[j].fileid;
-				filename.append(ss.str());
-				filename.append(".");
-				filename.append(tableinfos[i].extension);
-				outputfile.open(filename.c_str(), ios::out | ios::binary);
+				string outfilename = filedir;
+				outfilename.append(ss.str());
+				outfilename.append(".");
+				outfilename.append(tableinfos[i].extension);
+				cout << outfilename << '\n';
+				ofstream outputfile;
+				outputfile.open(outfilename.c_str(), ios::out | ios::binary);
 				if (outputfile.is_open()) {
 					outputfile << drstext.substr(tableinfos[i].fileinfo[j].fileoffset, tableinfos[i].fileinfo[j].filesize);
 					outputfile.close();
 				}
 			}
 		}
-
 		printf("\n");
+		file.close();
 	}
-	file.close();
 	return 0;
 }
