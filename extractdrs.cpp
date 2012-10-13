@@ -127,12 +127,12 @@ int main(int argc, char **argv)
 		long firstoff = str2long(header, 60);
 
 		cout << "Header:";
-		cout << "\tCopyright info\t\t:" << cpyright << "\n";
-		cout << "\tFile version\t\t:" << version << "\n";
-		cout << "\tFile type\t\t:" << type << "\n";
-		cout << "\tNumber of tables\t:" << numtables << "\n";
-		cout << "\tOffset of first file\t:" << firstoff << "\n";
-		printf("\n");
+		cout << "\tCopyright info\t\t:" << cpyright << '\n';
+		cout << "\tFile version\t\t:" << version << '\n';
+		cout << "\tFile type\t\t:" << type << '\n';
+		cout << "\tNumber of tables\t:" << numtables << '\n';
+		cout << "\tOffset of first file\t:" << firstoff << '\n';
+		printf('\n');
 
 		/* Get tables */
 		TableInfo *tableinfos = new TableInfo[numtables];
@@ -150,10 +150,10 @@ int main(int argc, char **argv)
 			tableinfos[i].numfiles = str2long(tableinfotext, 8);
 
 			cout << "TableInfo No." << i + 1 << ":";
-			cout << "\tCharacter\t:" << tableinfos[i].character << "\n";
-			cout << "\t\tExtension\t:" << tableinfos[i].extension << "\n";
-			cout << "\t\tTable offset\t:" << tableinfos[i].tbloffset << "\n";
-			cout << "\t\tNum files\t:" << tableinfos[i].numfiles << "\n";
+			cout << "\tCharacter\t:" << tableinfos[i].character << '\n';
+			cout << "\t\tExtension\t:" << tableinfos[i].extension << '\n';
+			cout << "\t\tTable offset\t:" << tableinfos[i].tbloffset << '\n';
+			cout << "\t\tNum files\t:" << tableinfos[i].numfiles << '\n';
 			printf("\n");
 
 			tableinfos[i].fileinfo = new Table[tableinfos[i].numfiles];
@@ -167,9 +167,9 @@ int main(int argc, char **argv)
 				tableinfos[i].fileinfo[j].filesize = str2long(tabletext, 8);
 
 			/*	cout << "\t\tTable No." << j + 1 << ":";
-				cout << "\tFile ID\t\t:" << tableinfos[i].fileinfo[j].fileid << "\n";
-				cout << "\t\t\t\tFile Offset\t:" << tableinfos[i].fileinfo[j].fileoffset << "\n";
-				cout << "\t\t\t\tFile Size\t:" << tableinfos[i].fileinfo[j].filesize << "\n"; */
+				cout << "\tFile ID\t\t:" << tableinfos[i].fileinfo[j].fileid << '\n';
+				cout << "\t\t\t\tFile Offset\t:" << tableinfos[i].fileinfo[j].fileoffset << '\n';
+				cout << "\t\t\t\tFile Size\t:" << tableinfos[i].fileinfo[j].filesize << '\n'; */
 
 				stringstream ss;
 				ss << tableinfos[i].fileinfo[j].fileid;
@@ -186,7 +186,7 @@ int main(int argc, char **argv)
 				}
 			}
 		}
-		printf("\n");
+		printf('\n');
 		file.close();
 	}
 	return 0;
