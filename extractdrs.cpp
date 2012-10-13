@@ -116,7 +116,8 @@ int main (int argc, char **argv)
 			printf("\n");
 
 			tableinfos[i].fileinfo = new Table[tableinfos[i].numfiles];
-			FioCreateDirectory("gamedata/");
+			FioCreateDirectory("extracted/");
+			FioCreateDirectory("extracted/gamedata/");
 			for (int j = 0; j < tableinfos[i].numfiles; j++) {
 				string tabletext = drstext.substr(tableinfos[i].tbloffset + (j * TABLE_SIZE), TABLE_SIZE);
 				tableinfos[i].fileinfo[j].fileid = str2long(tabletext, 0);
@@ -129,7 +130,7 @@ int main (int argc, char **argv)
 				cout << "\t\t\t\tFile Size\t:" << tableinfos[i].fileinfo[j].filesize << "\n";
 
 				ofstream outputfile;
-				string filename("gamedata/");
+				string filename("extracted/gamedata/");
 				stringstream ss;
 				ss << tableinfos[i].fileinfo[j].fileid;
 				filename.append(ss.str());
