@@ -4,6 +4,8 @@
 #include <sstream>
 #include <sys/stat.h>
 
+using namespace std;
+
 struct Table
 {
 	unsigned long fileid;
@@ -14,7 +16,7 @@ struct Table
 struct TableInfo
 {
 	unsigned char character;
-	std::string extension;
+	string extension;
 	unsigned long tbloffset;
 	unsigned long numfiles;
 	struct Table *fileinfo;
@@ -26,7 +28,7 @@ struct TableInfo
  * @param offset How far into the file to start.
  * @return the 'reformed' long int.
  */
-unsigned long str2long(std::string str, int offset)
+unsigned long str2long(string str, int offset)
 {
 	return (unsigned char)str[offset] + ((unsigned char)str[offset + 1] << 8) + ((unsigned char)str[offset + 2] << 16) + ((unsigned char)str[offset + 3] << 24);
 }
@@ -63,8 +65,8 @@ static const int EXTENSTION_SIZE = 3;
 
 int main (int argc, char **argv)
 {
-	std::ifstream file;
-	file.open("gamedata.drs", std::ios::binary | std::ios::ate);
+	ifstream file;
+	file.open("gamedata.drs", ios::binary | ios::ate);
 	if (file.is_open()) {
 		/* Get the whole file */
 		int size = (int)file.tellg();
@@ -72,29 +74,29 @@ int main (int argc, char **argv)
 		file.seekg(0);
 		file.read((char *)memblock, size);
 		file.close();
-		std::string drstext(reinterpret_cast<char *>(memblock), size);
+		string drstext(reinterpret_cast<char *>(memblock), size);
 		delete[] memblock;
 
 		/* Get the header */
-		std::string header = drstext.substr(0, HEADER_SIZE);
-		std::string cpyright = header.substr(0, COPYRIGHT_SIZE);
-		std::string version = header.substr(COPYRIGHT_SIZE, VERSION_SIZE);
-		std::string type = header.substr(COPYRIGHT_SIZE + VERSION_SIZE, TYPE_SIZE);
+		string header = drstext.substr(0, HEADER_SIZE);
+		string cpyright = header.substr(0, COPYRIGHT_SIZE);
+		string version = header.substr(COPYRIGHT_SIZE, VERSION_SIZE);
+		string type = header.substr(COPYRIGHT_SIZE + VERSION_SIZE, TYPE_SIZE);
 		long numtables = str2long(header, 56);
 		long firstoff = str2long(header, 60);
 
-		std::cout << "Header:";
-		std::cout << "\tCopyright info\t\t:" << cpyright << "\n";
-		std::cout << "\tFile version\t\t:" << version << "\n";
-		std::cout << "\tFile type\t\t:" << type << "\n";
-		std::cout << "\tNumber of tables\t:" << numtables << "\n";
-		std::cout << "\tOffset of first file\t:" << firstoff << "\n";
+		cout << "Header:";
+		cout << "\tCopyright info\t\t:" << cpyright << "\n";
+		cout << "\tFile version\t\t:" << version << "\n";
+		cout << "\tFile type\t\t:" << type << "\n";
+		cout << "\tNumber of tables\t:" << numtables << "\n";
+		cout << "\tOffset of first file\t:" << firstoff << "\n";
 		printf("\n");
 
 		/* Get tables */
 		TableInfo *tableinfos = new TableInfo[numtables];
 		for (int i = 0; i < numtables; i++) {
-			std::string tableinfotext = drstext.substr(HEADER_SIZE + (i * TABLE_SIZE), TABLE_SIZE);
+			string tableinfotext = drstext.substr(HEADER_SIZE + (i * TABLE_SIZE), TABLE_SIZE);
 			tableinfos[i].character = tableinfotext[0];
 
 			/* Reorder the extension */
@@ -106,34 +108,34 @@ int main (int argc, char **argv)
 			tableinfos[i].tbloffset = str2long(tableinfotext, 4);
 			tableinfos[i].numfiles = str2long(tableinfotext, 8);
 
-			std::cout << "TableInfo No." << i + 1 << ":";
-			std::cout << "\tCharacter\t:" << tableinfos[i].character << "\n";
-			std::cout << "\t\tExtension\t:" << tableinfos[i].extension << "\n";
-			std::cout << "\t\tTable offset\t:" << tableinfos[i].tbloffset << "\n";
-			std::cout << "\t\tNum files\t:" << tableinfos[i].numfiles << "\n";
+			cout << "TableInfo No." << i + 1 << ":";
+			cout << "\tCharacter\t:" << tableinfos[i].character << "\n";
+			cout << "\t\tExtension\t:" << tableinfos[i].extension << "\n";
+			cout << "\t\tTable offset\t:" << tableinfos[i].tbloffset << "\n";
+			cout << "\t\tNum files\t:" << tableinfos[i].numfiles << "\n";
 			printf("\n");
 
 			tableinfos[i].fileinfo = new Table[tableinfos[i].numfiles];
 			FioCreateDirectory("gamedata/");
 			for (int j = 0; j < tableinfos[i].numfiles; j++) {
-				std::string tabletext = drstext.substr(tableinfos[i].tbloffset + (j * TABLE_SIZE), TABLE_SIZE);
+				string tabletext = drstext.substr(tableinfos[i].tbloffset + (j * TABLE_SIZE), TABLE_SIZE);
 				tableinfos[i].fileinfo[j].fileid = str2long(tabletext, 0);
 				tableinfos[i].fileinfo[j].fileoffset = str2long(tabletext, 4);
 				tableinfos[i].fileinfo[j].filesize = str2long(tabletext, 8);
 
-				std::cout << "\t\tTable No." << j + 1 << ":";
-				std::cout << "\tFile ID\t\t:" << tableinfos[i].fileinfo[j].fileid << "\n";
-				std::cout << "\t\t\t\tFile Offset\t:" << tableinfos[i].fileinfo[j].fileoffset << "\n";
-				std::cout << "\t\t\t\tFile Size\t:" << tableinfos[i].fileinfo[j].filesize << "\n";
+				cout << "\t\tTable No." << j + 1 << ":";
+				cout << "\tFile ID\t\t:" << tableinfos[i].fileinfo[j].fileid << "\n";
+				cout << "\t\t\t\tFile Offset\t:" << tableinfos[i].fileinfo[j].fileoffset << "\n";
+				cout << "\t\t\t\tFile Size\t:" << tableinfos[i].fileinfo[j].filesize << "\n";
 
-				std::ofstream outputfile;
-				std::string filename("gamedata/");
-				std::stringstream ss;
+				ofstream outputfile;
+				string filename("gamedata/");
+				stringstream ss;
 				ss << tableinfos[i].fileinfo[j].fileid;
 				filename.append(ss.str());
 				filename.append(".");
 				filename.append(tableinfos[i].extension);
-				outputfile.open(filename.c_str(), std::ios::out | std::ios::binary);
+				outputfile.open(filename.c_str(), ios::out | ios::binary);
 				if (outputfile.is_open()) {
 					outputfile << drstext.substr(tableinfos[i].fileinfo[j].fileoffset, tableinfos[i].fileinfo[j].filesize);
 					outputfile.close();
