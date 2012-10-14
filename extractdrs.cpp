@@ -10,6 +10,16 @@
 
 using namespace std;
 
+struct Header
+{
+	string header;
+	string copyright;
+	string version;
+	string type;
+	uint numtables;
+	uint firstoffset;
+};
+
 struct Table
 {
 	uint fileid;
@@ -121,16 +131,17 @@ int main(int argc, char **argv)
 		delete[] memblock;
 
 		/* Get the header */
-		string header = drstext.substr(0, HEADER_SIZE);
-		string cpyright = header.substr(0, COPYRIGHT_SIZE);
-		string version = header.substr(COPYRIGHT_SIZE, VERSION_SIZE);
-		string type = header.substr(COPYRIGHT_SIZE + VERSION_SIZE, TYPE_SIZE);
-		long numtables = str2uint(header, 56);
-		long firstoff = str2uint(header, 60);
+		Header header;
+		string headertext = drstext.substr(0, HEADER_SIZE);
+		header.copyright = headertext.substr(0, COPYRIGHT_SIZE);
+		header.version = headertext.substr(COPYRIGHT_SIZE, VERSION_SIZE);
+		header.type = headertext.substr(COPYRIGHT_SIZE + VERSION_SIZE, TYPE_SIZE);
+		header.numtables = str2uint(headertext, 56);
+		header.firstoffset = str2uint(headertext, 60);
 
 		/* Get tables */
-		TableInfo *tableinfos = new TableInfo[numtables];
-		for (uint i = 0; i < numtables; i++) {
+		TableInfo *tableinfos = new TableInfo[header.numtables];
+		for (uint i = 0; i < header.numtables; i++) {
 			string tableinfotext = drstext.substr(HEADER_SIZE + (i * TABLE_SIZE), TABLE_SIZE);
 			tableinfos[i].character = tableinfotext[0];
 
