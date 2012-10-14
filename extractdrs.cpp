@@ -12,27 +12,27 @@ using namespace std;
 
 struct Table
 {
-	unsigned long fileid;
-	unsigned long fileoffset;
-	unsigned long filesize;
+	uint fileid;
+	uint fileoffset;
+	uint filesize;
 };
 
 struct TableInfo
 {
-	unsigned char character;
+	char character;
 	string extension;
-	unsigned long tbloffset;
-	unsigned long numfiles;
+	uint tbloffset;
+	uint numfiles;
 	struct Table *fileinfo;
 };
 
 /**
- * Converts (a part of) a string to a 4 bit long int.
- * @param str The string to operate on.
- * @param offset How far into the file to start.
- * @return the 'reformed' long int.
+ * Converts (a part of) a string to a 4 bit uint.
+ * @param str the string to operate on.
+ * @param offset how far into the string to start.
+ * @return the 'reformed' uint.
  */
-unsigned long str2long(string str, int offset)
+uint str2uint(string str, int offset)
 {
 	return (unsigned char)str[offset] + ((unsigned char)str[offset + 1] << 8) + ((unsigned char)str[offset + 2] << 16) + ((unsigned char)str[offset + 3] << 24);
 }
@@ -125,12 +125,12 @@ int main(int argc, char **argv)
 		string cpyright = header.substr(0, COPYRIGHT_SIZE);
 		string version = header.substr(COPYRIGHT_SIZE, VERSION_SIZE);
 		string type = header.substr(COPYRIGHT_SIZE + VERSION_SIZE, TYPE_SIZE);
-		long numtables = str2long(header, 56);
-		long firstoff = str2long(header, 60);
+		long numtables = str2uint(header, 56);
+		long firstoff = str2uint(header, 60);
 
 		/* Get tables */
 		TableInfo *tableinfos = new TableInfo[numtables];
-		for (int i = 0; i < numtables; i++) {
+		for (uint i = 0; i < numtables; i++) {
 			string tableinfotext = drstext.substr(HEADER_SIZE + (i * TABLE_SIZE), TABLE_SIZE);
 			tableinfos[i].character = tableinfotext[0];
 
@@ -140,8 +140,8 @@ int main(int argc, char **argv)
 			tableinfos[i].extension[0] = tableinfos[i].extension[2];
 			tableinfos[i].extension[2] = tmp;
 
-			tableinfos[i].tbloffset = str2long(tableinfotext, 4);
-			tableinfos[i].numfiles = str2long(tableinfotext, 8);
+			tableinfos[i].tbloffset = str2uint(tableinfotext, 4);
+			tableinfos[i].numfiles = str2uint(tableinfotext, 8);
 
 			cout << "TableInfo No." << i + 1 << ":\n";
 			cout << "\tExtension: " << tableinfos[i].extension << '\n';
@@ -151,11 +151,11 @@ int main(int argc, char **argv)
 			string filedir = EXTRACT_DIR + filename + PATHSEP;
 			cout << "Files being extracted to: " << filedir << '\n';
 			FioCreateDirectory(filedir.c_str());
-			for (int j = 0; j < tableinfos[i].numfiles; j++) {
+			for (uint j = 0; j < tableinfos[i].numfiles; j++) {
 				string tabletext = drstext.substr(tableinfos[i].tbloffset + (j * TABLE_SIZE), TABLE_SIZE);
-				tableinfos[i].fileinfo[j].fileid = str2long(tabletext, 0);
-				tableinfos[i].fileinfo[j].fileoffset = str2long(tabletext, 4);
-				tableinfos[i].fileinfo[j].filesize = str2long(tabletext, 8);
+				tableinfos[i].fileinfo[j].fileid = str2uint(tabletext, 0);
+				tableinfos[i].fileinfo[j].fileoffset = str2uint(tabletext, 4);
+				tableinfos[i].fileinfo[j].filesize = str2uint(tabletext, 8);
 
 				stringstream ss;
 				ss << tableinfos[i].fileinfo[j].fileid;
