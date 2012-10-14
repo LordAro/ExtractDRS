@@ -102,7 +102,7 @@ int main(int argc, char **argv)
 	for (int i = 0; i < filelist.size(); i++) {
 		string filename = filelist[i].substr(filelist[i].find('/') + 1, filelist[i].length());
 		ifstream file;
-		cout << "Reading " << filelist[i] << '\n';
+		cout << "Reading " << filelist[i] << ":\n";
 		file.open(filelist[i].c_str(), ios::in | ios::binary | ios::ate);
 		if (!file.is_open()) {
 			cout << "Error opening file: " << filelist[i] << '\n';
@@ -126,14 +126,6 @@ int main(int argc, char **argv)
 		long numtables = str2long(header, 56);
 		long firstoff = str2long(header, 60);
 
-		cout << "Header:";
-		cout << "\tCopyright info\t\t:" << cpyright << '\n';
-		cout << "\tFile version\t\t:" << version << '\n';
-		cout << "\tFile type\t\t:" << type << '\n';
-		cout << "\tNumber of tables\t:" << numtables << '\n';
-		cout << "\tOffset of first file\t:" << firstoff << '\n';
-		printf('\n');
-
 		/* Get tables */
 		TableInfo *tableinfos = new TableInfo[numtables];
 		for (int i = 0; i < numtables; i++) {
@@ -149,12 +141,9 @@ int main(int argc, char **argv)
 			tableinfos[i].tbloffset = str2long(tableinfotext, 4);
 			tableinfos[i].numfiles = str2long(tableinfotext, 8);
 
-			cout << "TableInfo No." << i + 1 << ":";
-			cout << "\tCharacter\t:" << tableinfos[i].character << '\n';
-			cout << "\t\tExtension\t:" << tableinfos[i].extension << '\n';
-			cout << "\t\tTable offset\t:" << tableinfos[i].tbloffset << '\n';
-			cout << "\t\tNum files\t:" << tableinfos[i].numfiles << '\n';
-			printf("\n");
+			cout << "TableInfo No." << i + 1 << ":\n";
+			cout << "\tExtension: " << tableinfos[i].extension << '\n';
+			cout << "\tNumber of files: " << tableinfos[i].numfiles << '\n';
 
 			tableinfos[i].fileinfo = new Table[tableinfos[i].numfiles];
 			string filedir = "extracted/" + filename + '/';
@@ -166,18 +155,12 @@ int main(int argc, char **argv)
 				tableinfos[i].fileinfo[j].fileoffset = str2long(tabletext, 4);
 				tableinfos[i].fileinfo[j].filesize = str2long(tabletext, 8);
 
-			/*	cout << "\t\tTable No." << j + 1 << ":";
-				cout << "\tFile ID\t\t:" << tableinfos[i].fileinfo[j].fileid << '\n';
-				cout << "\t\t\t\tFile Offset\t:" << tableinfos[i].fileinfo[j].fileoffset << '\n';
-				cout << "\t\t\t\tFile Size\t:" << tableinfos[i].fileinfo[j].filesize << '\n'; */
-
 				stringstream ss;
 				ss << tableinfos[i].fileinfo[j].fileid;
 				string outfilename = filedir;
 				outfilename.append(ss.str());
 				outfilename.append(".");
 				outfilename.append(tableinfos[i].extension);
-				cout << outfilename << '\n';
 				ofstream outputfile;
 				outputfile.open(outfilename.c_str(), ios::out | ios::binary);
 				if (outputfile.is_open()) {
@@ -185,8 +168,9 @@ int main(int argc, char **argv)
 					outputfile.close();
 				}
 			}
+			printf("\n");
 		}
-		printf('\n');
+		printf("\n");
 		file.close();
 	}
 	return 0;
