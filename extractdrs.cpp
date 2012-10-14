@@ -12,6 +12,9 @@
 
 using namespace std;
 
+static const string PATHSEP = "/";
+static const string EXTRACT_DIR = "extracted" + PATHSEP;
+
 /**
  * Converts (a part of) a string to a 4 bit uint.
  * @param str the string to operate on.
@@ -66,9 +69,6 @@ vector<string> ListFiles(const char *path)
 	}
 	return filelist;
 }
-
-static const string PATHSEP = "/";
-static const string EXTRACT_DIR = "extracted" + PATHSEP;
 
 int main(int argc, char **argv)
 {
