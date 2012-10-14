@@ -3,6 +3,14 @@
 
 using namespace std;
 
+static const int HEADER_SIZE = 64;
+static const int COPYRIGHT_SIZE = 40;
+static const int VERSION_SIZE = 4;
+static const int TYPE_SIZE = 12;
+
+static const int TABLE_SIZE = 12;
+static const int EXTENSTION_SIZE = 3;
+
 struct Header
 {
 	string header;
