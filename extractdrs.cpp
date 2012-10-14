@@ -8,33 +8,9 @@
 #include <errno.h>
 #include <vector>
 
+#include "drs.h"
+
 using namespace std;
-
-struct Header
-{
-	string header;
-	string copyright;
-	string version;
-	string type;
-	uint numtables;
-	uint firstoffset;
-};
-
-struct Table
-{
-	uint fileid;
-	uint fileoffset;
-	uint filesize;
-};
-
-struct TableInfo
-{
-	char character;
-	string extension;
-	uint tbloffset;
-	uint numfiles;
-	struct Table *fileinfo;
-};
 
 /**
  * Converts (a part of) a string to a 4 bit uint.
