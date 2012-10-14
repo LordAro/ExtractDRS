@@ -160,9 +160,9 @@ int main(int argc, char **argv)
 				stringstream ss;
 				ss << tableinfos[i].fileinfo[j].fileid;
 				string outfilename = filedir;
-				outfilename.append(ss.str());
-				outfilename.append(".");
-				outfilename.append(tableinfos[i].extension);
+				outfilename += ss.str();
+				outfilename += ".";
+				outfilename += tableinfos[i].extension;
 				ofstream outputfile;
 				outputfile.open(outfilename.c_str(), ios::out | ios::binary);
 				if (outputfile.is_open()) {
