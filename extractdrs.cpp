@@ -88,6 +88,8 @@ static const int TYPE_SIZE = 12;
 
 static const int TABLE_SIZE = 12;
 static const int EXTENSTION_SIZE = 3;
+static const string PATHSEP = "/";
+static const string EXTRACT_DIR = "extracted" + PATHSEP;
 
 int main(int argc, char **argv)
 {
@@ -98,9 +100,9 @@ int main(int argc, char **argv)
 	std::string drsdirname = argv[1];
 	vector<string> filelist = ListFiles(drsdirname.c_str());
 
-	FioCreateDirectory("extracted/");
+	FioCreateDirectory(EXTRACT_DIR.c_str());
 	for (int i = 0; i < filelist.size(); i++) {
-		string filename = filelist[i].substr(filelist[i].find('/') + 1, filelist[i].length());
+		string filename = filelist[i].substr(filelist[i].find(PATHSEP) + 1, filelist[i].length());
 		ifstream file;
 		cout << "Reading " << filelist[i] << ":\n";
 		file.open(filelist[i].c_str(), ios::in | ios::binary | ios::ate);
@@ -146,7 +148,7 @@ int main(int argc, char **argv)
 			cout << "\tNumber of files: " << tableinfos[i].numfiles << '\n';
 
 			tableinfos[i].fileinfo = new Table[tableinfos[i].numfiles];
-			string filedir = "extracted/" + filename + '/';
+			string filedir = EXTRACT_DIR + filename + PATHSEP;
 			cout << "Files being extracted to: " << filedir << '\n';
 			FioCreateDirectory(filedir.c_str());
 			for (int j = 0; j < tableinfos[i].numfiles; j++) {
