@@ -36,7 +36,7 @@ int main(int argc, char **argv)
 	vector<string> filelist = ListFiles(drsdirname.c_str());
 
 	FioCreateDirectory(EXTRACT_DIR.c_str());
-	for (int i = 0; i < filelist.size(); i++) {
+	for (uint i = 0; i < filelist.size(); i++) {
 		ExtractDRSFile(filelist[i]);
 	}
 	return 0;
