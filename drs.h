@@ -1,7 +1,19 @@
 #ifndef DRS_H
 #define DRS_H
 
+#include <iostream>
+#include <fstream>
+#include <cstring>
+#include <sstream>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <dirent.h>
+#include <errno.h>
+
 using namespace std;
+
+static const string PATHSEP = "/";
+static const string EXTRACT_DIR = "extracted" + PATHSEP;
 
 static const int HEADER_SIZE = 64;
 static const int COPYRIGHT_SIZE = 40;
@@ -36,5 +48,8 @@ struct TableInfo
 	uint numfiles;
 	struct Table *fileinfo;
 };
+
+void FioCreateDirectory(const char *name);
+void ExtractDRSFile(string path);
 
 #endif /* DRS_H */
