@@ -1,4 +1,4 @@
-OBJDIR=objects
+OBJDIR=obj
 
 CXX=g++
 CXXFLAGS=-Wall -g
