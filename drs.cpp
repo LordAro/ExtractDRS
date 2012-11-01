@@ -30,7 +30,7 @@ using namespace std;
  * @param offset How far into the string to start
  * @return The converted uint
  */
-uint str2uint(string str, int offset)
+uint str2uint(const string &str, int offset)
 {
 	return (unsigned char)str[offset] + ((unsigned char)str[offset + 1] << 8) + ((unsigned char)str[offset + 2] << 16) + ((unsigned char)str[offset + 3] << 24);
 }
