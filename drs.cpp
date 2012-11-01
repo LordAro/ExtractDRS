@@ -75,11 +75,12 @@ void ExtractDRSFile(const string &path)
 		cerr << "File is too small: Only " << size << " bytes long\n";
 		return;
 	}
+
 	char *memblock = new char[size];
 	file.seekg(0);
-	file.read((char *)memblock, size);
+	file.read(memblock, size);
 	file.close();
-	string drstext(reinterpret_cast<char *>(memblock), size);
+	string drstext(memblock, size);
 	delete[] memblock;
 
 	/* Get the header */
