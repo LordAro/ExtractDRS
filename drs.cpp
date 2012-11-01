@@ -112,7 +112,8 @@ void ExtractDRSFile(string path)
 		cout << "\tNumber of files: " << tableinfos[i].numfiles << '\n';
 
 		tableinfos[i].fileinfo = new Table[tableinfos[i].numfiles];
-		string filedir = EXTRACT_DIR + filename + PATHSEP;
+		/* Construct the directory path, without extension */
+		string filedir = EXTRACT_DIR + filename.substr(0, filename.length() - 4) + PATHSEP;
 		cout << "Files being extracted to: " << filedir << '\n';
 		FioCreateDirectory(filedir.c_str());
 		for (uint j = 0; j < tableinfos[i].numfiles; j++) {
