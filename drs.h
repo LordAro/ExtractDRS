@@ -69,6 +69,6 @@ struct TableInfo
 };
 
 void FioCreateDirectory(const char *name);
-void ExtractDRSFile(string path);
+void ExtractDRSFile(const string &path);
 
 #endif /* DRS_H */

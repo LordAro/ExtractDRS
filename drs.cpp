@@ -57,7 +57,7 @@ void FioCreateDirectory(const char *name)
  * Actually extract the drs file
  * @param path The path to the drs file
  */
-void ExtractDRSFile(string path)
+void ExtractDRSFile(const string &path)
 {
 	string filename = path.substr(path.find(PATHSEP) + 1, path.length());
 	ifstream file;
