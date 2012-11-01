@@ -19,8 +19,6 @@
 
 #include "drs.h"
 
-using namespace std;
-
 /**
  * Converts (a part of) a string to a 4 byte uint
  * @param str The string to operate on

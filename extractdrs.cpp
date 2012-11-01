@@ -21,8 +21,6 @@
 
 #include "drs.h"
 
-using namespace std;
-
 /**
  * Generate a list of files with a .drs extension
  * @param path The directory to look in for files
