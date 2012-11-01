@@ -75,6 +75,10 @@ void ExtractDRSFile(string path)
 
 	/* Get the whole file */
 	int size = (int)file.tellg();
+
+	if (size < HEADER_SIZE) {
+		cout << "File is too small: Only " << size << " bytes long\n";
+	}
 	unsigned char *memblock = new unsigned char[size];
 	file.seekg(0);
 	file.read((char *)memblock, size);
