@@ -106,8 +106,8 @@ void ExtractDRSFile(string path)
 				outputfile.close();
 			}
 		}
-		printf("\n");
+		cout << '\n';
 	}
-	printf("\n");
+	cout << '\n';
 	file.close();
 }
