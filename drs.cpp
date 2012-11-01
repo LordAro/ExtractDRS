@@ -75,7 +75,7 @@ void ExtractDRSFile(const string &path)
 		cerr << "File is too small: Only " << size << " bytes long\n";
 		return;
 	}
-	unsigned char *memblock = new unsigned char[size];
+	char *memblock = new char[size];
 	file.seekg(0);
 	file.read((char *)memblock, size);
 	file.close();
