@@ -18,7 +18,7 @@ vector<string> ListFiles(const char *path)
 			if (strstr(hFile->d_name, ".drs")) {
 				string fullfile = path;
 				fullfile += hFile->d_name;
-				cout << "Found: " << fullfile << "\n";
+				cout << "Found: " << fullfile << '\n';
 				filelist.push_back(fullfile);
 			}
 		}
