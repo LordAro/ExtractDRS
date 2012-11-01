@@ -66,7 +66,7 @@ void ExtractDRSFile(string path)
 	cout << "Reading " << path << ":\n";
 	file.open(path.c_str(), ios::in | ios::binary | ios::ate);
 	if (!file.is_open()) {
-		cout << "Error opening file: " << path << '\n';
+		cerr << "Error opening file: " << path << '\n';
 		return;
 	}
 

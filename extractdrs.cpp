@@ -47,7 +47,7 @@ vector<string> ListFiles(const char *path)
 			}
 		}
 	} else {
-		cout << "Error opening directory: " << path << '\n';
+		cerr << "Error opening directory: " << path << '\n';
 	}
 	return filelist;
 }
@@ -61,7 +61,7 @@ vector<string> ListFiles(const char *path)
 int main(int argc, char **argv)
 {
 	if (argc != 2 || argv[1][strlen(argv[1]) - 1] != '/') {
-		cout << "Only one argument allowed, which must end in '/'\n";
+		cerr << "Only one argument allowed, which must end in '/'\n";
 		return 1;
 	}
 	std::string drsdirname = argv[1];
