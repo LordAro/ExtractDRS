@@ -22,6 +22,8 @@ vector<string> ListFiles(const char *path)
 				filelist.push_back(fullfile);
 			}
 		}
+	} else {
+		cout << "Error opening directory: " << path << '\n';
 	}
 	return filelist;
 }
