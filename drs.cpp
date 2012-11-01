@@ -97,11 +97,9 @@ void ExtractDRSFile(const string &path)
 		string tableinfotext = drstext.substr(HEADER_SIZE + (i * TABLE_SIZE), TABLE_SIZE);
 		tableinfos[i].character = tableinfotext[0];
 
-		/* Reorder the extension */
+		/* Get and re-order the extension */
 		tableinfos[i].extension = tableinfotext.substr(1, 3);
-		char tmp = tableinfos[i].extension[0];
-		tableinfos[i].extension[0] = tableinfos[i].extension[2];
-		tableinfos[i].extension[2] = tmp;
+		swap(tableinfos[i].extension[0], tableinfos[i].extension[2]);
 
 		tableinfos[i].tbloffset = str2uint(tableinfotext, 4);
 		tableinfos[i].numfiles = str2uint(tableinfotext, 8);
