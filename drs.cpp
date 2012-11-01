@@ -20,7 +20,7 @@
 using namespace std;
 
 /**
- * Converts (a part of) a string to a 4 bit uint.
+ * Converts (a part of) a string to a 4 byte uint.
  * @param str the string to operate on.
  * @param offset how far into the string to start.
  * @return the 'reformed' uint.
