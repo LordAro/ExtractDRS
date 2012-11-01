@@ -15,6 +15,8 @@
  *  along with ExtractDRS.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file extractdrs.cpp Starting of ExtractDRS and some preliminary functions */
+
 #include <vector>
 
 #include "drs.h"

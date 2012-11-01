@@ -15,6 +15,8 @@
  *  along with ExtractDRS.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file drs.h Declarations of types necessary to extracting drs files */
+
 #ifndef DRS_H
 #define DRS_H
 

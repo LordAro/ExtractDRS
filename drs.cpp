@@ -15,10 +15,7 @@
  *  along with ExtractDRS.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/**
- * @file drs.cpp
- * This file deals with extracting .drs files
- */
+/** @file drs.cpp Functions related to extracting .drs files */
 
 #include "drs.h"
 
