@@ -21,6 +21,11 @@
 
 using namespace std;
 
+/**
+ * Generate a list of files with a .drs extension
+ * @param path The directory to look in for files
+ * @return A list of paths to drs files, in string format
+ */
 vector<string> ListFiles(const char *path)
 {
 	DIR *dirFile = opendir(path);
@@ -29,7 +34,7 @@ vector<string> ListFiles(const char *path)
 		struct dirent *hFile;
 		errno = 0;
 		while ((hFile = readdir(dirFile)) != NULL) {
-			// Ignore hidden files
+			/* Ignore hidden files */
 			if (hFile->d_name[0] == '.') continue;
 
 			if (strstr(hFile->d_name, ".drs")) {
@@ -45,6 +50,12 @@ vector<string> ListFiles(const char *path)
 	return filelist;
 }
 
+/**
+ * Main entry point of the program
+ * @param argc An integer argument count of the command line arguments
+ * @param argv An argument vector of the command line arguments
+ * @return The exit status of the program
+ */
 int main(int argc, char **argv)
 {
 	if (argc != 2 || argv[1][strlen(argv[1]) - 1] != '/') {

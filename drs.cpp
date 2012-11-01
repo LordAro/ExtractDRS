@@ -15,15 +15,20 @@
  *  along with ExtractDRS.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file drs.cpp
+ * This file deals with extracting .drs files
+ */
+
 #include "drs.h"
 
 using namespace std;
 
 /**
- * Converts (a part of) a string to a 4 byte uint.
- * @param str the string to operate on.
- * @param offset how far into the string to start.
- * @return the 'reformed' uint.
+ * Converts (a part of) a string to a 4 byte uint
+ * @param str The string to operate on
+ * @param offset How far into the string to start
+ * @return The converted uint
  */
 uint str2uint(string str, int offset)
 {
@@ -32,7 +37,8 @@ uint str2uint(string str, int offset)
 
 /**
  * Create a directory with the given name
- * @param name the name of the new directory.
+ * @note Taken from the OpenTTD project
+ * @param name The name of the new directory
  */
 void FioCreateDirectory(const char *name)
 {
@@ -52,6 +58,10 @@ void FioCreateDirectory(const char *name)
 #endif
 }
 
+/**
+ * Actually extract the drs file
+ * @param path The path to the drs file
+ */
 void ExtractDRSFile(string path)
 {
 	string filename = path.substr(path.find(PATHSEP) + 1, path.length());
