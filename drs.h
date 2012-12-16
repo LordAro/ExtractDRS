@@ -32,8 +32,6 @@ static const int TYPE_SIZE = 12;
 static const int TABLE_SIZE = 12;
 static const int EXTENSTION_SIZE = 3;
 
-typedef unsigned char byte;
-
 struct DRS_Header
 {
 	string header;

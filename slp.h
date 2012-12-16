@@ -13,13 +13,6 @@
 
 using namespace std;
 
- struct SLP_Header
- {
-	 string version;
-	 uint num_shapes;
-	 string comment;
- };
-
 struct SLP_Info
 {
 	uint data_offsets;
@@ -31,6 +24,16 @@ struct SLP_Info
 	int hotspot_x;
 	int hotspot_y;
 };
+
+ struct SLP_File
+ {
+	 /* Header */
+	 string version;
+	 uint num_shapes;
+	 string comment;
+	 /* End Header */
+	 struct SLP_Info* shapeinfos;
+ };
 
 void ExtractSLPFile(string filename);
 

@@ -23,7 +23,7 @@ uint str2uint(const string &str, int offset)
 	return (byte)str[offset] + ((byte)str[offset + 1] << 8) + ((byte)str[offset + 2] << 16) + ((byte)str[offset + 3] << 24);
 }
 
-string ReadFile(string path)
+string ReadFile(const string &path)
 {
 	ifstream file;
 	file.open(path.c_str(), ios::in | ios::binary | ios::ate);
