@@ -12,6 +12,17 @@
 
 #include <vector>
 
+/**
+ * Converts (a part of) a string to a 4 byte uint
+ * @param str The string to operate on
+ * @param offset How far into the string to start
+ * @return The converted uint
+ */
+uint str2uint(const string &str, int offset)
+{
+	return (byte)str[offset] + ((byte)str[offset + 1] << 8) + ((byte)str[offset + 2] << 16) + ((byte)str[offset + 3] << 24);
+}
+
 string ReadFile(string path)
 {
 	ifstream file;
