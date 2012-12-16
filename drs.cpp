@@ -9,6 +9,7 @@
 
 #include "drs.h"
 #include "slp.h"
+#include "extractdrs.h"
 
 /**
  * Converts (a part of) a string to a 4 byte uint
@@ -51,32 +52,18 @@ void FioCreateDirectory(const char *name)
 void ExtractDRSFile(const string &path)
 {
 	string filename = path.substr(path.find(PATHSEP) + 1, path.length());
-	ifstream file;
 	cout << "Reading " << path << ":\n";
-	file.open(path.c_str(), ios::in | ios::binary | ios::ate);
-	if (!file.is_open()) {
-		cerr << "Error opening file: " << path << '\n';
+
+	string filedata = ReadFile(path);
+
+	if (filedata.length() < (uint)HEADER_SIZE) {
+		cerr << "File is too small: Only " << filedata.length() << " bytes long\n";
 		return;
 	}
-
-	/* Get the whole file */
-	int size = (int)file.tellg();
-
-	if (size < HEADER_SIZE) {
-		cerr << "File is too small: Only " << size << " bytes long\n";
-		return;
-	}
-
-	char *memblock = new char[size];
-	file.seekg(0);
-	file.read(memblock, size);
-	file.close();
-	string drstext(memblock, size);
-	delete[] memblock;
 
 	/* Get the header */
 	DRS_Header header;
-	string headertext = drstext.substr(0, HEADER_SIZE);
+	string headertext = filedata.substr(0, HEADER_SIZE);
 	header.copyright = headertext.substr(0, COPYRIGHT_SIZE);
 	header.version = headertext.substr(COPYRIGHT_SIZE, VERSION_SIZE);
 	header.type = headertext.substr(COPYRIGHT_SIZE + VERSION_SIZE, TYPE_SIZE);
@@ -86,7 +73,7 @@ void ExtractDRSFile(const string &path)
 	/* Get tables */
 	DRS_TableInfo *tableinfos = new DRS_TableInfo[header.numtables];
 	for (uint i = 0; i < header.numtables; i++) {
-		string tableinfotext = drstext.substr(HEADER_SIZE + (i * TABLE_SIZE), TABLE_SIZE);
+		string tableinfotext = filedata.substr(HEADER_SIZE + (i * TABLE_SIZE), TABLE_SIZE);
 		tableinfos[i].character = tableinfotext[0];
 
 		/* Get and re-order the extension */
@@ -106,7 +93,7 @@ void ExtractDRSFile(const string &path)
 		cout << "Files being extracted to: " << filedir << '\n';
 		FioCreateDirectory(filedir.c_str());
 		for (uint j = 0; j < tableinfos[i].numfiles; j++) {
-			string tabletext = drstext.substr(tableinfos[i].tbloffset + (j * TABLE_SIZE), TABLE_SIZE);
+			string tabletext = filedata.substr(tableinfos[i].tbloffset + (j * TABLE_SIZE), TABLE_SIZE);
 			tableinfos[i].fileinfo[j].fileid = str2uint(tabletext, 0);
 			tableinfos[i].fileinfo[j].fileoffset = str2uint(tabletext, 4);
 			tableinfos[i].fileinfo[j].filesize = str2uint(tabletext, 8);
@@ -123,7 +110,7 @@ void ExtractDRSFile(const string &path)
 				cerr << "Error writing to " << outfilename << '\n';
 				continue;
 			}
-			outputfile << drstext.substr(tableinfos[i].fileinfo[j].fileoffset, tableinfos[i].fileinfo[j].filesize);
+			outputfile << filedata.substr(tableinfos[i].fileinfo[j].fileoffset, tableinfos[i].fileinfo[j].filesize);
 			outputfile.close();
 			if (tableinfos[i].extension == "slp") {
 				ExtractSLPFile(outfilename);
@@ -132,5 +119,4 @@ void ExtractDRSFile(const string &path)
 		cout << '\n';
 	}
 	cout << '\n';
-	file.close();
 }

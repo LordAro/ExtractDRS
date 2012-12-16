@@ -7,9 +7,33 @@
 
 /** @file extractdrs.cpp Starting of ExtractDRS and some preliminary functions */
 
+#include "drs.h"
+#include "extractdrs.h"
+
 #include <vector>
 
-#include "drs.h"
+string ReadFile(string path)
+{
+	ifstream file;
+	file.open(path.c_str(), ios::in | ios::binary | ios::ate);
+	if (!file.is_open()) {
+		cerr << "Error opening file: " << path << '\n';
+		return NULL;
+	}
+
+	/* Get the whole file */
+	int size = (int)file.tellg();
+
+	char *memblock = new char[size];
+	file.seekg(0);
+	file.read(memblock, size);
+	file.close();
+	string filedata(memblock, size);
+	delete[] memblock;
+	file.close();
+
+	return filedata;
+}
 
 /**
  * Generate a list of files with a .drs extension
@@ -52,7 +76,7 @@ int main(int argc, char **argv)
 		cerr << "Only one argument allowed, which must end in '/'\n";
 		return 1;
 	}
-	std::string drsdirname = argv[1];
+	string drsdirname = argv[1];
 	vector<string> filelist = ListFiles(drsdirname.c_str());
 
 	FioCreateDirectory(EXTRACT_DIR.c_str());
