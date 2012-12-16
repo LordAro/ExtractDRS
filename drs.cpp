@@ -8,6 +8,7 @@
 /** @file drs.cpp Functions related to extracting .drs files */
 
 #include "drs.h"
+#include "slp.h"
 
 /**
  * Converts (a part of) a string to a 4 byte uint
@@ -118,9 +119,14 @@ void ExtractDRSFile(const string &path)
 			outfilename += tableinfos[i].extension;
 			ofstream outputfile;
 			outputfile.open(outfilename.c_str(), ios::out | ios::binary);
-			if (outputfile.is_open()) {
-				outputfile << drstext.substr(tableinfos[i].fileinfo[j].fileoffset, tableinfos[i].fileinfo[j].filesize);
-				outputfile.close();
+			if (!outputfile.is_open()) {
+				cerr << "Error writing to " << outfilename << '\n';
+				continue;
+			}
+			outputfile << drstext.substr(tableinfos[i].fileinfo[j].fileoffset, tableinfos[i].fileinfo[j].filesize);
+			outputfile.close();
+			if (tableinfos[i].extension == "slp") {
+				ExtractSLPFile(outfilename);
 			}
 		}
 		cout << '\n';

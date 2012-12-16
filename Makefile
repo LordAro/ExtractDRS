@@ -8,7 +8,7 @@ OBJDIR=obj
 CXX=g++
 CXXFLAGS=-Wall -g
 
-CXXFILES=extractdrs.cpp drs.cpp
+CXXFILES=extractdrs.cpp drs.cpp slp.cpp
 
 OBJFILES=$(addprefix $(OBJDIR)/,$(CXXFILES:.cpp=.o))
 TARGET=extractdrs
