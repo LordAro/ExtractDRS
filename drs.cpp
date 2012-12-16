@@ -74,7 +74,7 @@ void ExtractDRSFile(const string &path)
 	delete[] memblock;
 
 	/* Get the header */
-	Header header;
+	DRS_Header header;
 	string headertext = drstext.substr(0, HEADER_SIZE);
 	header.copyright = headertext.substr(0, COPYRIGHT_SIZE);
 	header.version = headertext.substr(COPYRIGHT_SIZE, VERSION_SIZE);
@@ -83,7 +83,7 @@ void ExtractDRSFile(const string &path)
 	header.firstoffset = str2uint(headertext, 60);
 
 	/* Get tables */
-	TableInfo *tableinfos = new TableInfo[header.numtables];
+	DRS_TableInfo *tableinfos = new DRS_TableInfo[header.numtables];
 	for (uint i = 0; i < header.numtables; i++) {
 		string tableinfotext = drstext.substr(HEADER_SIZE + (i * TABLE_SIZE), TABLE_SIZE);
 		tableinfos[i].character = tableinfotext[0];
@@ -99,7 +99,7 @@ void ExtractDRSFile(const string &path)
 		cout << "\tExtension: " << tableinfos[i].extension << '\n';
 		cout << "\tNumber of files: " << tableinfos[i].numfiles << '\n';
 
-		tableinfos[i].fileinfo = new Table[tableinfos[i].numfiles];
+		tableinfos[i].fileinfo = new DRS_Table[tableinfos[i].numfiles];
 		/* Construct the directory path, without extension */
 		string filedir = EXTRACT_DIR + filename.substr(0, filename.length() - 4) + PATHSEP;
 		cout << "Files being extracted to: " << filedir << '\n';

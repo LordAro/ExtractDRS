@@ -34,7 +34,7 @@ static const int EXTENSTION_SIZE = 3;
 
 typedef unsigned char byte;
 
-struct Header
+struct DRS_Header
 {
 	string header;
 	string copyright;
@@ -44,20 +44,20 @@ struct Header
 	uint firstoffset;
 };
 
-struct Table
+struct DRS_Table
 {
 	uint fileid;
 	uint fileoffset;
 	uint filesize;
 };
 
-struct TableInfo
+struct DRS_TableInfo
 {
 	char character;
 	string extension;
 	uint tbloffset;
 	uint numfiles;
-	struct Table *fileinfo;
+	struct DRS_Table *fileinfo;
 };
 
 void FioCreateDirectory(const char *name);
