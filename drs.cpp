@@ -17,7 +17,7 @@
  */
 uint str2uint(const string &str, int offset)
 {
-	return (unsigned char)str[offset] + ((unsigned char)str[offset + 1] << 8) + ((unsigned char)str[offset + 2] << 16) + ((unsigned char)str[offset + 3] << 24);
+	return (byte)str[offset] + ((byte)str[offset + 1] << 8) + ((byte)str[offset + 2] << 16) + ((byte)str[offset + 3] << 24);
 }
 
 /**
