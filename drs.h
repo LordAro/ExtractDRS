@@ -21,9 +21,6 @@
 
 using namespace std;
 
-static const string PATHSEP = "/";
-static const string EXTRACT_DIR = "extracted" + PATHSEP;
-
 static const int HEADER_SIZE = 64;
 static const int COPYRIGHT_SIZE = 40;
 static const int VERSION_SIZE = 4;
