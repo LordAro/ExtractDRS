@@ -50,6 +50,7 @@ struct SLP_Shape
 
 struct SLP_File
 {
+	int id;
 	SLP_Header header;
 	SLP_Shape* shape;
 };

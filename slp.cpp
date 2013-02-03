@@ -21,7 +21,12 @@ uint GetCommand(uint number) {
 }
 
 void ExtractSLPFile(string filename) {
-	std::cout << "Extracting " << filename << endl;
+	SLP_File slpfile;
+	cout << "Extracting " << filename << endl;
+
+	/* Get the file id */
+	string idstr = filename.substr(filename.rfind(PATHSEP) + 1, filename.rfind('.') - filename.rfind(PATHSEP) - 1);
+	std::stringstream(idstr) >> slpfile.id;
 
 	const vector<byte> filedata = ReadFile(filename);
 	if (filedata.empty() || filedata.size() < 64) {
@@ -31,7 +36,6 @@ void ExtractSLPFile(string filename) {
 	}
 	vector<byte>::const_iterator p_filedata = filedata.begin();
 
-	SLP_File slpfile;
 	slpfile.header.version = string(p_filedata, p_filedata + 4);
 	p_filedata += 4;
 	slpfile.header.num_shapes = vec2uint(filedata, p_filedata - filedata.begin());
@@ -42,6 +46,7 @@ void ExtractSLPFile(string filename) {
 //	cout << "Num shapes: " << slpfile.header.num_shapes << endl;
 //	cout << "Comment: " << slpfile.header.comment << endl;
 
+	if (slpfile.header.num_shapes == 0) return;
 	/* For each shape */
 	slpfile.shape = new SLP_Shape[slpfile.header.num_shapes];
 	for (uint i = 0; i < slpfile.header.num_shapes; i++) {
@@ -71,6 +76,7 @@ void ExtractSLPFile(string filename) {
 //		cout << "X Hotspot: " << slpfile.shape[i].info.hotspot_x << endl;
 //		cout << "Y Hotspot: " << slpfile.shape[i].info.hotspot_y << endl;
 
+		if (slpfile.shape[i].info.height == 0 || slpfile.shape[i].info.width == 0) return;
 		/* For each row in the shape */
 		slpfile.shape[i].row = new SLP_Row[slpfile.shape[i].info.height];
 		for (int j = 0; j < slpfile.shape[i].info.height; j++) {
@@ -267,7 +273,7 @@ void ExtractSLPFile(string filename) {
 		bmpfilename << filedir;
 		bmpfilename << "slpextracted/";
 		FioCreateDirectory(bmpfilename.str().c_str());
-		bmpfilename << filename.substr(filename.rfind(PATHSEP) + 1, filename.length() - (filename.rfind(PATHSEP) + 1) - 4);
+		bmpfilename << slpfile.id;
 		bmpfilename << '-';
 		bmpfilename << i;
 		bmpfilename << ".bmp";
