@@ -19,19 +19,18 @@
 #include <dirent.h>
 #include <errno.h>
 
-using namespace std;
+#include "extractdrs.h"
 
-static const int HEADER_SIZE = 64;
-static const int COPYRIGHT_SIZE = 40;
-static const int VERSION_SIZE = 4;
-static const int TYPE_SIZE = 12;
+static const byte HEADER_SIZE = 64;
+static const byte COPYRIGHT_SIZE = 40;
+static const byte VERSION_SIZE = 4;
+static const byte TYPE_SIZE = 12;
 
-static const int TABLE_SIZE = 12;
-static const int EXTENSTION_SIZE = 3;
+static const byte TABLE_SIZE = 12;
+static const byte EXTENSTION_SIZE = 3;
 
 struct DRS_Header
 {
-	string header;
 	string copyright;
 	string version;
 	string type;

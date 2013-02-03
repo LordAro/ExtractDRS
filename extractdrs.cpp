@@ -10,40 +10,39 @@
 #include "drs.h"
 #include "extractdrs.h"
 
-#include <vector>
-
 /**
- * Converts (a part of) a string to a 4 byte uint
- * @param str The string to operate on
- * @param offset How far into the string to start
- * @return The converted uint
+ * Converts (a part of) a byte vector to a 4 byte uint.
+ * @param arr The byte vector to operate on.
+ * @param offset How far into the byte vector to start.
+ * @return The converted uint.
  */
-uint str2uint(const string &str, int offset)
+uint vec2uint(const vector<byte> vec, int offset)
 {
-	return (byte)str[offset] + ((byte)str[offset + 1] << 8) + ((byte)str[offset + 2] << 16) + ((byte)str[offset + 3] << 24);
+	return vec[offset] + (vec[offset + 1] << 8) + (vec[offset + 2] << 16) + (vec[offset + 3] << 24);
 }
 
-string ReadFile(const string &path)
+vector<byte> ReadFile(const string &path)
 {
-	ifstream file;
-	file.open(path.c_str(), ios::in | ios::binary | ios::ate);
+	std::ifstream file;
+	file.open(path.c_str(), std::ios::binary | std::ios::ate);
 	if (!file.is_open()) {
-		cerr << "Error opening file: " << path << '\n';
-		return NULL;
+		std::cerr << "Error opening file: " << path << endl;
+		return vector<byte>();
 	}
 
 	/* Get the whole file */
-	int size = (int)file.tellg();
+	const int size = (int)file.tellg();
 
-	char *memblock = new char[size];
+	byte *memblock = new byte[size];
+
 	file.seekg(0);
-	file.read(memblock, size);
-	file.close();
-	string filedata(memblock, size);
-	delete[] memblock;
+	file.read((char *)memblock, size);
 	file.close();
 
-	return filedata;
+	vector<byte> data(memblock, memblock + size);
+
+	delete[] memblock;
+	return data;
 }
 
 /**
@@ -65,13 +64,14 @@ vector<string> ListFiles(const char *path)
 			if (strstr(hFile->d_name, ".drs")) {
 				string fullfile = path;
 				fullfile += hFile->d_name;
-				cout << "Found: " << fullfile << '\n';
+				cout << "Found: " << fullfile << endl;
 				filelist.push_back(fullfile);
 			}
 		}
 	} else {
-		cerr << "Error opening directory: " << path << '\n';
+		std::cerr << "Error opening directory: " << path << endl;
 	}
+	closedir(dirFile);
 	return filelist;
 }
 
@@ -84,7 +84,7 @@ vector<string> ListFiles(const char *path)
 int main(int argc, char **argv)
 {
 	if (argc != 2 || argv[1][strlen(argv[1]) - 1] != '/') {
-		cerr << "Only one argument allowed, which must end in '/'\n";
+		std::cerr << "Only one argument allowed, which must end in '/'" << endl;
 		return 1;
 	}
 	string drsdirname = argv[1];

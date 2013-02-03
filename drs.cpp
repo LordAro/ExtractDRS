@@ -7,6 +7,9 @@
 
 /** @file drs.cpp Functions related to extracting .drs files */
 
+#include <cstring>
+#include <iterator>
+
 #include "drs.h"
 #include "slp.h"
 #include "extractdrs.h"
@@ -40,72 +43,86 @@ void FioCreateDirectory(const char *name)
  */
 void ExtractDRSFile(const string &path)
 {
-	string filename = path.substr(path.find(PATHSEP) + 1, path.length());
+    int dirstartpos = path.rfind(PATHSEP) + 1;
+	string filename = path.substr(dirstartpos, path.length() - dirstartpos);
 	cout << "Reading " << path << ":\n";
 
-	string filedata = ReadFile(path);
+	const vector<byte> filedata = ReadFile(path);
 
-	if (filedata.length() < (uint)HEADER_SIZE) {
-		cerr << "File is too small: Only " << filedata.length() << " bytes long\n";
+	if (filedata.empty() || filedata.size() < HEADER_SIZE) {
+		std::cerr << "File is too small: Only " << filedata.size() << " bytes long\n";
 		return;
 	}
+	vector<byte>::const_iterator p_filedata = filedata.begin();
 
 	/* Get the header */
 	DRS_Header header;
-	string headertext = filedata.substr(0, HEADER_SIZE);
-	header.copyright = headertext.substr(0, COPYRIGHT_SIZE);
-	header.version = headertext.substr(COPYRIGHT_SIZE, VERSION_SIZE);
-	header.type = headertext.substr(COPYRIGHT_SIZE + VERSION_SIZE, TYPE_SIZE);
-	header.numtables = str2uint(headertext, 56);
-	header.firstoffset = str2uint(headertext, 60);
+	header.copyright = string(p_filedata, p_filedata + COPYRIGHT_SIZE);
+	p_filedata += COPYRIGHT_SIZE;
+	header.version = string(p_filedata, p_filedata + VERSION_SIZE);
+	p_filedata += VERSION_SIZE;
+	header.type = vec2uint(filedata, p_filedata - filedata.begin());
+	p_filedata += TYPE_SIZE;
+
+	header.numtables = vec2uint(filedata, p_filedata - filedata.begin());
+	header.firstoffset = vec2uint(filedata, p_filedata - filedata.begin() + 4);
 
 	/* Get tables */
 	DRS_TableInfo *tableinfos = new DRS_TableInfo[header.numtables];
 	for (uint i = 0; i < header.numtables; i++) {
-		string tableinfotext = filedata.substr(HEADER_SIZE + (i * TABLE_SIZE), TABLE_SIZE);
-		tableinfos[i].character = tableinfotext[0];
+		p_filedata = filedata.begin() + HEADER_SIZE + (i * TABLE_SIZE);
+		tableinfos[i].character = *p_filedata;
+		p_filedata++;
 
 		/* Get and re-order the extension */
-		tableinfos[i].extension = tableinfotext.substr(1, 3);
-		swap(tableinfos[i].extension[0], tableinfos[i].extension[2]);
+		tableinfos[i].extension = string(p_filedata, p_filedata + 3);
+		std::swap(tableinfos[i].extension[0], tableinfos[i].extension[2]);
+		p_filedata += 3;
 
-		tableinfos[i].tbloffset = str2uint(tableinfotext, 4);
-		tableinfos[i].numfiles = str2uint(tableinfotext, 8);
+		tableinfos[i].tbloffset = vec2uint(filedata, p_filedata - filedata.begin());
+		tableinfos[i].numfiles = vec2uint(filedata, p_filedata - filedata.begin() + 4);
 
-		cout << "TableInfo No." << i + 1 << ":\n";
-		cout << "\tExtension: " << tableinfos[i].extension << '\n';
-		cout << "\tNumber of files: " << tableinfos[i].numfiles << '\n';
+		cout << "TableInfo No." << i + 1 << ':' << endl;
+		cout << "\tCharacter: " << (int)tableinfos[i].character << endl;
+		cout << "\tExtension: " << tableinfos[i].extension << endl;
+		cout << "\tNumber of files: " << tableinfos[i].numfiles << endl;
 
 		tableinfos[i].fileinfo = new DRS_Table[tableinfos[i].numfiles];
 		/* Construct the directory path, without extension */
 		string filedir = EXTRACT_DIR + filename.substr(0, filename.length() - 4) + PATHSEP;
-		cout << "Files being extracted to: " << filedir << '\n';
+		cout << "Files being extracted to: " << filedir << endl;
 		FioCreateDirectory(filedir.c_str());
 		for (uint j = 0; j < tableinfos[i].numfiles; j++) {
-			string tabletext = filedata.substr(tableinfos[i].tbloffset + (j * TABLE_SIZE), TABLE_SIZE);
-			tableinfos[i].fileinfo[j].fileid = str2uint(tabletext, 0);
-			tableinfos[i].fileinfo[j].fileoffset = str2uint(tabletext, 4);
-			tableinfos[i].fileinfo[j].filesize = str2uint(tabletext, 8);
+			p_filedata = filedata.begin() + tableinfos[i].tbloffset + (j * TABLE_SIZE);
 
-			stringstream ss;
+			tableinfos[i].fileinfo[j].fileid = vec2uint(filedata, p_filedata - filedata.begin());
+			tableinfos[i].fileinfo[j].fileoffset = vec2uint(filedata, p_filedata - filedata.begin() + 4);
+			tableinfos[i].fileinfo[j].filesize = vec2uint(filedata, p_filedata - filedata.begin() + 8);
+
+			std::stringstream ss;
+			ss << filedir;
 			ss << tableinfos[i].fileinfo[j].fileid;
-			string outfilename = filedir;
-			outfilename += ss.str();
-			outfilename += ".";
-			outfilename += tableinfos[i].extension;
-			ofstream outputfile;
-			outputfile.open(outfilename.c_str(), ios::out | ios::binary);
-			if (!outputfile.is_open()) {
-				cerr << "Error writing to " << outfilename << '\n';
+			ss << '.';
+			ss << tableinfos[i].extension;
+			std::ofstream outfile;
+			outfile.open(ss.str().c_str(), std::ios::binary);
+			if (!outfile.is_open()) {
+				std::cerr << "Error writing to " << ss.str() << endl;
 				continue;
 			}
-			outputfile << filedata.substr(tableinfos[i].fileinfo[j].fileoffset, tableinfos[i].fileinfo[j].filesize);
-			outputfile.close();
+			p_filedata = filedata.begin() + tableinfos[i].fileinfo[j].fileoffset;
+			//outfile.write(*p_filedata, tableinfos[i].fileinfo[j].filesize);
+			std::ostream_iterator<byte> oi(outfile);
+			std::copy(p_filedata, p_filedata + tableinfos[i].fileinfo[j].filesize, oi);
+			outfile.close();
 			if (tableinfos[i].extension == "slp") {
-				ExtractSLPFile(outfilename);
+				ExtractSLPFile(ss.str());
 			}
 		}
-		cout << '\n';
+
+		delete[] tableinfos[i].fileinfo;
+		cout << endl;
 	}
-	cout << '\n';
+	delete[] tableinfos;
+	cout << endl;
 }
