@@ -102,14 +102,12 @@ void ExtractSLPFile(string filename) {
 
 			int curpixelpos = slpfile.shape[i].row[j].left;
 			do {
-				/*
-				 * Used for render hints from extended commands
-				 * Note: Out of sync for the first byte, but irrelevant
-				 */
-				byte prevbyte = curbyte;
+				/* Used for render hints from extended commands
+				 * Note: Out of sync for the first byte, but irrelevant */
+//				byte prevbyte = curbyte;
 				uint length = 0;
 
-				byte curbyte = filedata[curpos];
+				curbyte = filedata[curpos];
 				command = GetCommand(curbyte);
 				switch(command) {
 					case CMD_Lesser_Block_Copy:
@@ -272,7 +270,7 @@ void ExtractSLPFile(string filename) {
 		std::stringstream bmpfilename;
 		bmpfilename << filedir;
 		bmpfilename << "slpextracted/";
-		FioCreateDirectory(bmpfilename.str().c_str());
+		CreateDirectory(bmpfilename.str().c_str());
 		bmpfilename << slpfile.id;
 		bmpfilename << '-';
 		bmpfilename << i;

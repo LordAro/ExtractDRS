@@ -19,7 +19,7 @@
  * @note Taken from the OpenTTD project
  * @param name The name of the new directory
  */
-void FioCreateDirectory(const char *name)
+void CreateDirectory(const char *name)
 {
 #if defined(WIN32) || defined(WINCE)
 	CreateDirectory(name, NULL);
@@ -91,7 +91,7 @@ void ExtractDRSFile(const string &path)
 		/* Construct the directory path, without extension */
 		string filedir = EXTRACT_DIR + filename.substr(0, filename.length() - 4) + PATHSEP;
 		cout << "Files being extracted to: " << filedir << endl;
-		FioCreateDirectory(filedir.c_str());
+		CreateDirectory(filedir.c_str());
 		for (uint j = 0; j < tableinfos[i].numfiles; j++) {
 			p_filedata = filedata.begin() + tableinfos[i].tbloffset + (j * TABLE_SIZE);
 
