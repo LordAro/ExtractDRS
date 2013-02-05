@@ -7,8 +7,12 @@
 
 /** @file extractdrs.cpp Starting of ExtractDRS and some preliminary functions */
 
-#include "drs.h"
+#include <cstring>
+#include <fstream>
+#include <sys/stat.h>
+
 #include "extractdrs.h"
+#include "drs.h"
 
 /**
  * Converts (a part of) a byte vector to a 4 byte uint.
@@ -19,6 +23,27 @@
 uint vec2uint(const vector<byte> vec, int offset)
 {
 	return vec[offset] + (vec[offset + 1] << 8) + (vec[offset + 2] << 16) + (vec[offset + 3] << 24);
+}
+
+/**
+ * Create a directory with the given name
+ * @note Taken from the OpenTTD project
+ * @param name The name of the new directory
+ */
+void GenCreateDirectory(const string &name)
+{
+#if defined(WIN32) || defined(WINCE)
+	CreateDirectory(name.c_str(), NULL);
+#elif defined(OS2) && !defined(__INNOTEK_LIBC__)
+	mkdir(name.c_str());
+#elif defined(__MORPHOS__) || defined(__AMIGAOS__)
+	string tmp(name);
+	if (*tmp.rbegin() == '/') *tmp.rbegin() = '\0'; // Don't want a path-separator on the end
+
+	mkdir(tmp.c_str(), 0755);
+#else
+	mkdir(name.c_str(), 0755);
+#endif
 }
 
 vector<byte> ReadFile(const string &path)
@@ -90,7 +115,7 @@ int main(int argc, char **argv)
 	string drsdirname = argv[1];
 	vector<string> filelist = ListFiles(drsdirname.c_str());
 
-	CreateDirectory(EXTRACT_DIR.c_str());
+	GenCreateDirectory(EXTRACT_DIR);
 	for (uint i = 0; i < filelist.size(); i++) {
 		ExtractDRSFile(filelist[i]);
 	}

@@ -10,11 +10,10 @@
 
 #include "slp.h"
 #include "extractdrs.h"
-#include <sys/types.h>
 
 using std::string;
 
-bool CreateBMP(const string fileanme, SLP_Shape *shape);
+bool CreateBMP(const string &filename, SLP_Shape *shape);
 
 /** BMP File Header (stored in little endian) */
 struct BitmapFileHeader {

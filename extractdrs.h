@@ -8,6 +8,11 @@
 #ifndef EXTRACTDRS_H
 #define EXTRACTDRS_H
 
+#include <cerrno>
+#include <dirent.h>
+#include <iostream>
+#include <string>
+#include <sys/types.h>
 #include <vector>
 
 using std::string;
@@ -15,12 +20,12 @@ using std::vector;
 using std::endl;
 using std::cout;
 
-
 static const string PATHSEP = "/";
 static const string EXTRACT_DIR = "extracted" + PATHSEP;
 
 typedef unsigned char byte;
 
+void GenCreateDirectory(const string &name);
 vector<byte> ReadFile(const string &path);
 
 uint vec2uint(const vector<byte> vec, int offset);

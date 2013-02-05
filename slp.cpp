@@ -7,10 +7,8 @@
 
 #include <sstream>
 
-#include "slp.h"
 #include "bmp.h"
-#include "extractdrs.h"
-#include "drs.h"
+#include "slp.h"
 
 ushort vec2ushort(const vector<byte> vec, int offset) {
 	return (vec[offset] << 0) + (vec[offset + 1] << 8);
@@ -270,7 +268,7 @@ void ExtractSLPFile(string filename) {
 		std::stringstream bmpfilename;
 		bmpfilename << filedir;
 		bmpfilename << "slpextracted/";
-		CreateDirectory(bmpfilename.str().c_str());
+		GenCreateDirectory(bmpfilename.str());
 		bmpfilename << slpfile.id;
 		bmpfilename << '-';
 		bmpfilename << i;

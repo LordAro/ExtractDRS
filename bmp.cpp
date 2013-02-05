@@ -9,7 +9,6 @@
 #include <string.h>
 
 #include "bmp.h"
-#include "slp.h"
 #include "palette.h"
 
 /**
@@ -19,7 +18,7 @@
  * @note Based on functions in OpenTTD project.
  * @return true iff the file was written.
  */
-bool CreateBMP(const string filename, SLP_Shape *shape)
+bool CreateBMP(const string &filename, SLP_Shape *shape)
 {
 	uint width = shape->info.width;
 	uint height = shape->info.height;
@@ -79,10 +78,10 @@ bool CreateBMP(const string filename, SLP_Shape *shape)
 	/* Convert the palette to the windows format */
 	RgbQuad rq[256];
 	for (uint i = 0; i < 256; i++) {
-		rq[i].red   = bmp_palette[i][RED];
-		rq[i].green = bmp_palette[i][GREEN];
-		rq[i].blue  = bmp_palette[i][BLUE];
 		rq[i].reserved = 0;
+		rq[i].blue  = bmp_palette[i][BLUE];
+		rq[i].green = bmp_palette[i][GREEN];
+		rq[i].red   = bmp_palette[i][RED];
 	}
 	/* Write the palette */
 	f.write((char *)&rq, sizeof(rq));
@@ -92,7 +91,8 @@ bool CreateBMP(const string filename, SLP_Shape *shape)
 	/* Start at the bottom, since bitmaps are stored bottom up */
 	for (uint n = height; n != 0; n--) {
 		/* Write to file */
-		if (n == 26) {
+		if (shape->info.height == 197 && width == 359) {
+		cout << n << endl;
 		}
 		f.write(reinterpret_cast<char *>(shape->row[n - 1].pixel), width);
 		if (bytewidth != width) {

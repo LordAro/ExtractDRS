@@ -11,15 +11,12 @@
 #define DRS_H
 
 #include <iostream>
-#include <fstream>
-#include <cstring>
-#include <sstream>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <dirent.h>
-#include <errno.h>
+#include <string>
 
 #include "extractdrs.h"
+#include "slp.h"
+
+using std::string;
 
 static const byte HEADER_SIZE = 64;
 static const byte COPYRIGHT_SIZE = 40;
@@ -54,7 +51,6 @@ struct DRS_TableInfo
 	struct DRS_Table *fileinfo;
 };
 
-void CreateDirectory(const char *name);
 void ExtractDRSFile(const string &path);
 
 #endif /* DRS_H */

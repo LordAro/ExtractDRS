@@ -7,35 +7,11 @@
 
 /** @file drs.cpp Functions related to extracting .drs files */
 
-#include <cstring>
 #include <iterator>
+#include <sstream>
+#include <fstream>
 
 #include "drs.h"
-#include "slp.h"
-#include "extractdrs.h"
-
-/**
- * Create a directory with the given name
- * @note Taken from the OpenTTD project
- * @param name The name of the new directory
- */
-void CreateDirectory(const char *name)
-{
-#if defined(WIN32) || defined(WINCE)
-	CreateDirectory(name, NULL);
-#elif defined(OS2) && !defined(__INNOTEK_LIBC__)
-	mkdir(name);
-#elif defined(__MORPHOS__) || defined(__AMIGAOS__)
-	size_t len = strlen(name) - 1;
-	if (name[len] '/') {
-		name[len] = '\0'; // Don't want a path-separator on the end
-	}
-
-	mkdir(name, 0755);
-#else
-	mkdir(name, 0755);
-#endif
-}
 
 /**
  * Actually extract the drs file
@@ -91,7 +67,7 @@ void ExtractDRSFile(const string &path)
 		/* Construct the directory path, without extension */
 		string filedir = EXTRACT_DIR + filename.substr(0, filename.length() - 4) + PATHSEP;
 		cout << "Files being extracted to: " << filedir << endl;
-		CreateDirectory(filedir.c_str());
+		GenCreateDirectory(filedir);
 		for (uint j = 0; j < tableinfos[i].numfiles; j++) {
 			p_filedata = filedata.begin() + tableinfos[i].tbloffset + (j * TABLE_SIZE);
 

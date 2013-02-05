@@ -9,7 +9,6 @@
 #define SLP_H
 
 #include <iostream>
-#include <sys/types.h>
 
 #include "extractdrs.h"
 
