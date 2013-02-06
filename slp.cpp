@@ -10,15 +10,18 @@
 #include "bmp.h"
 #include "slp.h"
 
-ushort vec2ushort(const vector<byte> vec, int offset) {
+ushort vec2ushort(const vector<byte> vec, int offset)
+{
 	return (vec[offset] << 0) + (vec[offset + 1] << 8);
 }
 
-uint GetCommand(uint number) {
+uint GetCommand(uint number)
+{
 	return number & 0xF;
 }
 
-void ExtractSLPFile(string filename) {
+void ExtractSLPFile(string filename)
+{
 	SLP_File slpfile;
 	cout << "Extracting " << filename << endl;
 
@@ -59,6 +62,8 @@ void ExtractSLPFile(string filename) {
 		slpfile.shape[i].info.height         = vec2uint(filedata, p_filedata - filedata.begin() + 20);
 		slpfile.shape[i].info.hotspot_x      = vec2uint(filedata, p_filedata - filedata.begin() + 24);
 		slpfile.shape[i].info.hotspot_y      = vec2uint(filedata, p_filedata - filedata.begin() + 28);
+
+		if (slpfile.shape[i].info.data_offset > filedata.size() || slpfile.shape[i].info.outline_offset > filedata.size()) return;
 
 //		cout << "Data Offsets: " << slpfile.shape[i].info.data_offset << endl;
 //		cout << "Outline Offset: " << slpfile.shape[i].info.outline_offset << endl;
@@ -242,7 +247,7 @@ void ExtractSLPFile(string filename) {
 								cout << filename << '\n';
 								string s;
 								getline(std::cin, s);
-								break;
+								return;
 						}
 						break;
 
@@ -256,7 +261,7 @@ void ExtractSLPFile(string filename) {
 						cout << filename << endl;
 						string s;
 						getline(std::cin, s);
-						break;
+						return;
 				}
 				curpos++;
 			} while (command != 0x0F);
