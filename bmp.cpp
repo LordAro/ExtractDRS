@@ -91,9 +91,6 @@ bool CreateBMP(const string &filename, SLP_Shape *shape)
 	/* Start at the bottom, since bitmaps are stored bottom up */
 	for (uint n = height; n != 0; n--) {
 		/* Write to file */
-		if (shape->info.height == 197 && width == 359) {
-		cout << n << endl;
-		}
 		f.write(reinterpret_cast<char *>(shape->row[n - 1].pixel), width);
 		if (bytewidth != width) {
 			char *zeros = new char[bytewidth - width]();

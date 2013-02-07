@@ -147,7 +147,7 @@ void ExtractSLPFile(string filename)
 
 					case CMD_Greater_Skip:
 						length = ((curbyte & 0xF0) << 4) + filedata[curpos + 1];
-						curpixelpos += length + 1;
+						curpixelpos += length;
 						curpos++;
 //						cout << "\tCommand: " << command << ':' << length << endl;
 						break;
