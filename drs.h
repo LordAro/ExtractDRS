@@ -16,13 +16,13 @@
 #include "extractdrs.h"
 #include "slp.h"
 
-static const byte HEADER_SIZE = 64;
-static const byte COPYRIGHT_SIZE = 40;
-static const byte VERSION_SIZE = 4;
-static const byte TYPE_SIZE = 12;
+static const uint8 HEADER_SIZE = 64;
+static const uint8 COPYRIGHT_SIZE = 40;
+static const uint8 VERSION_SIZE = 4;
+static const uint8 TYPE_SIZE = 12;
 
-static const byte TABLE_SIZE = 12;
-static const byte EXTENSTION_SIZE = 3;
+static const uint8 TABLE_SIZE = 12;
+static const uint8 EXTENSTION_SIZE = 3;
 
 struct DRS_Header
 {

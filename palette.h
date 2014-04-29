@@ -11,7 +11,7 @@
 #include "slp.h"
 
 #define M(r, g, b) {r, g, b}
-static const byte bmp_palette[][3] = {
+static const uint8 bmp_palette[][3] = {
 	M(  0,   0,   0), // Black 0
 	M(  0,  74, 161),
 	M(  0,  97, 155),

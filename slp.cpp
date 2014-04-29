@@ -10,7 +10,7 @@
 #include "bmp.h"
 #include "slp.h"
 
-ushort vec2ushort(const std::vector<byte> vec, int offset)
+ushort vec2ushort(const std::vector<uint8> vec, int offset)
 {
 	return (vec[offset] << 0) + (vec[offset + 1] << 8);
 }
@@ -29,13 +29,13 @@ void ExtractSLPFile(std::string filename)
 	std::string idstr = filename.substr(filename.rfind(PATHSEP) + 1, filename.rfind('.') - filename.rfind(PATHSEP) - 1);
 	std::stringstream(idstr) >> slpfile.id;
 
-	const std::vector<byte> filedata = ReadFile(filename);
+	const std::vector<uint8> filedata = ReadFile(filename);
 	if (filedata.empty() || filedata.size() < 64) {
 		// (Header + 1 shapedata)
 		std::cerr << "File is too small. Only " << filedata.size() << " bytes long." << std::endl;
 		return;
 	}
-	std::vector<byte>::const_iterator p_filedata = filedata.begin();
+	std::vector<uint8>::const_iterator p_filedata = filedata.begin();
 
 	slpfile.header.version = std::string(p_filedata, p_filedata + 4);
 	p_filedata += 4;
@@ -96,9 +96,9 @@ void ExtractSLPFile(std::string filename)
 
 			uint curpos = slpfile.shape[i].row[j].datastart;
 			uint command = 0x0F;
-			byte curbyte = 0;
+			uint8 curbyte = 0;
 
-			slpfile.shape[i].row[j].pixel = new byte[slpfile.shape[i].info.width]();
+			slpfile.shape[i].row[j].pixel = new uint8[slpfile.shape[i].info.width]();
 
 			/* Leave a line blank */
 			if (slpfile.shape[i].row[j].left == 0x8000) continue;
@@ -107,7 +107,7 @@ void ExtractSLPFile(std::string filename)
 			do {
 				/* Used for render hints from extended commands
 				 * Note: Out of sync for the first byte, but irrelevant */
-//				byte prevbyte = curbyte;
+//				uint8 prevbyte = curbyte;
 				uint length = 0;
 
 				curbyte = filedata[curpos];

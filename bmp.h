@@ -31,7 +31,7 @@ struct BitmapInfoHeader {
 
 /** Format of palette data in BMP header */
 struct RgbQuad {
-	byte blue, green, red, reserved;
+	uint8 blue, green, red, reserved;
 };
 
 #endif /* BMP_H */

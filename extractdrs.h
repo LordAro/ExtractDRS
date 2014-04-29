@@ -18,11 +18,11 @@
 static const std::string PATHSEP = "/";
 static const std::string EXTRACT_DIR = "extracted" + PATHSEP;
 
-typedef unsigned char byte;
+typedef unsigned char uint8;
 
 void GenCreateDirectory(const std::string &name);
-std::vector<byte> ReadFile(const std::string &path);
+std::vector<uint8> ReadFile(const std::string &path);
 
-uint vec2uint(const std::vector<byte> vec, int offset);
+uint vec2uint(const std::vector<uint8> vec, int offset);
 
 #endif /* EXTRACTDRS_H */

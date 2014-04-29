@@ -23,13 +23,13 @@ void ExtractDRSFile(const std::string &path)
 	std::string filename = path.substr(dirstartpos, path.length() - dirstartpos);
 	std::cout << "Reading " << path << ":\n";
 
-	const std::vector<byte> filedata = ReadFile(path);
+	const std::vector<uint8> filedata = ReadFile(path);
 
 	if (filedata.empty() || filedata.size() < HEADER_SIZE) {
 		std::cerr << "File is too small: Only " << filedata.size() << " bytes long\n";
 		return;
 	}
-	std::vector<byte>::const_iterator p_filedata = filedata.begin();
+	std::vector<uint8>::const_iterator p_filedata = filedata.begin();
 
 	/* Get the header */
 	DRS_Header header;
@@ -88,7 +88,7 @@ void ExtractDRSFile(const std::string &path)
 			}
 			p_filedata = filedata.begin() + tableinfos[i].fileinfo[j].fileoffset;
 			//outfile.write(*p_filedata, tableinfos[i].fileinfo[j].filesize);
-			std::ostream_iterator<byte> oi(outfile);
+			std::ostream_iterator<uint8> oi(outfile);
 			std::copy(p_filedata, p_filedata + tableinfos[i].fileinfo[j].filesize, oi);
 			outfile.close();
 			if (tableinfos[i].extension == "slp") {

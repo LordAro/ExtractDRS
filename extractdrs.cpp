@@ -15,12 +15,12 @@
 #include "drs.h"
 
 /**
- * Converts (a part of) a byte vector to a 4 byte uint.
- * @param arr The byte vector to operate on.
- * @param offset How far into the byte vector to start.
+ * Converts (a part of) a uint8 vector to a 4 byte uint.
+ * @param arr The vector to operate on.
+ * @param offset How far into the vector to start.
  * @return The converted uint.
  */
-uint vec2uint(const std::vector<byte> vec, int offset)
+uint vec2uint(const std::vector<uint8> vec, int offset)
 {
 	return vec[offset] + (vec[offset + 1] << 8) + (vec[offset + 2] << 16) + (vec[offset + 3] << 24);
 }
@@ -35,25 +35,25 @@ void GenCreateDirectory(const std::string &name)
 	mkdir(name.c_str(), 0755);
 }
 
-std::vector<byte> ReadFile(const std::string &path)
+std::vector<uint8> ReadFile(const std::string &path)
 {
 	std::ifstream file;
 	file.open(path.c_str(), std::ios::binary | std::ios::ate);
 	if (!file.is_open()) {
 		std::cerr << "Error opening file: " << path << std::endl;
-		return std::vector<byte>();
+		return std::vector<uint8>();
 	}
 
 	/* Get the whole file */
 	const int size = (int)file.tellg();
 
-	byte *memblock = new byte[size];
+	uint8 *memblock = new uint8[size];
 
 	file.seekg(0);
 	file.read((char *)memblock, size);
 	file.close();
 
-	std::vector<byte> data(memblock, memblock + size);
+	std::vector<uint8> data(memblock, memblock + size);
 
 	delete[] memblock;
 	return data;
