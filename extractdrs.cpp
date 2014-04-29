@@ -32,18 +32,7 @@ uint vec2uint(const vector<byte> vec, int offset)
  */
 void GenCreateDirectory(const string &name)
 {
-#if defined(WIN32) || defined(WINCE)
-	CreateDirectory(name.c_str(), NULL);
-#elif defined(OS2) && !defined(__INNOTEK_LIBC__)
-	mkdir(name.c_str());
-#elif defined(__MORPHOS__) || defined(__AMIGAOS__)
-	string tmp(name);
-	if (*tmp.rbegin() == '/') *tmp.rbegin() = '\0'; // Don't want a path-separator on the end
-
-	mkdir(tmp.c_str(), 0755);
-#else
 	mkdir(name.c_str(), 0755);
-#endif
 }
 
 vector<byte> ReadFile(const string &path)
