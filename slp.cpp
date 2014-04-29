@@ -10,7 +10,7 @@
 #include "bmp.h"
 #include "slp.h"
 
-ushort vec2ushort(const vector<byte> vec, int offset)
+ushort vec2ushort(const std::vector<byte> vec, int offset)
 {
 	return (vec[offset] << 0) + (vec[offset + 1] << 8);
 }
@@ -20,32 +20,32 @@ uint GetCommand(uint number)
 	return number & 0xF;
 }
 
-void ExtractSLPFile(string filename)
+void ExtractSLPFile(std::string filename)
 {
 	SLP_File slpfile;
-	cout << "Extracting " << filename << endl;
+	std::cout << "Extracting " << filename << std::endl;
 
 	/* Get the file id */
-	string idstr = filename.substr(filename.rfind(PATHSEP) + 1, filename.rfind('.') - filename.rfind(PATHSEP) - 1);
+	std::string idstr = filename.substr(filename.rfind(PATHSEP) + 1, filename.rfind('.') - filename.rfind(PATHSEP) - 1);
 	std::stringstream(idstr) >> slpfile.id;
 
-	const vector<byte> filedata = ReadFile(filename);
+	const std::vector<byte> filedata = ReadFile(filename);
 	if (filedata.empty() || filedata.size() < 64) {
 		// (Header + 1 shapedata)
-		std::cerr << "File is too small. Only " << filedata.size() << " bytes long." << endl;
+		std::cerr << "File is too small. Only " << filedata.size() << " bytes long." << std::endl;
 		return;
 	}
-	vector<byte>::const_iterator p_filedata = filedata.begin();
+	std::vector<byte>::const_iterator p_filedata = filedata.begin();
 
-	slpfile.header.version = string(p_filedata, p_filedata + 4);
+	slpfile.header.version = std::string(p_filedata, p_filedata + 4);
 	p_filedata += 4;
 	slpfile.header.num_shapes = vec2uint(filedata, p_filedata - filedata.begin());
 	p_filedata += 4;
-	slpfile.header.comment = string(p_filedata, p_filedata + 24);
+	slpfile.header.comment = std::string(p_filedata, p_filedata + 24);
 
-//	cout << "Version: " << slpfile.header.version << endl;
-//	cout << "Num shapes: " << slpfile.header.num_shapes << endl;
-//	cout << "Comment: " << slpfile.header.comment << endl;
+//	std::cout << "Version: " << slpfile.header.version << std::endl;
+//	std::cout << "Num shapes: " << slpfile.header.num_shapes << std::endl;
+//	std::cout << "Comment: " << slpfile.header.comment << std::endl;
 
 	if (slpfile.header.num_shapes == 0) return;
 	/* For each shape */
@@ -65,25 +65,25 @@ void ExtractSLPFile(string filename)
 
 		if (slpfile.shape[i].info.data_offset > filedata.size() || slpfile.shape[i].info.outline_offset > filedata.size()) return;
 
-//		cout << "Data Offsets: " << slpfile.shape[i].info.data_offset << endl;
-//		cout << "Outline Offset: " << slpfile.shape[i].info.outline_offset << endl;
+//		std::cout << "Data Offsets: " << slpfile.shape[i].info.data_offset << std::endl;
+//		std::cout << "Outline Offset: " << slpfile.shape[i].info.outline_offset << std::endl;
 		// Palette offset is 0 for all drs files
-//		cout << "Palette Offset: " << slpfile.shape[i].info.palette_offset << endl;
+//		std::cout << "Palette Offset: " << slpfile.shape[i].info.palette_offset << std::endl;
 
 		// Properties = 0, 8, 16 or 24
-//		cout << "Properties: " << slpfile.shape[i].info.properties << endl;
-//		cout << "Width: " << slpfile.shape[i].info.width << endl;
-//		cout << "Height: " << slpfile.shape[i].info.height << endl;
+//		std::cout << "Properties: " << slpfile.shape[i].info.properties << std::endl;
+//		std::cout << "Width: " << slpfile.shape[i].info.width << std::endl;
+//		std::cout << "Height: " << slpfile.shape[i].info.height << std::endl;
 
 		// Note: hotspot_x/hotspot_y could be outside the width/height
-//		cout << "X Hotspot: " << slpfile.shape[i].info.hotspot_x << endl;
-//		cout << "Y Hotspot: " << slpfile.shape[i].info.hotspot_y << endl;
+//		std::cout << "X Hotspot: " << slpfile.shape[i].info.hotspot_x << std::endl;
+//		std::cout << "Y Hotspot: " << slpfile.shape[i].info.hotspot_y << std::endl;
 
 		if (slpfile.shape[i].info.height == 0 || slpfile.shape[i].info.width == 0) return;
 		/* For each row in the shape */
 		slpfile.shape[i].row = new SLP_Row[slpfile.shape[i].info.height];
 		for (int j = 0; j < slpfile.shape[i].info.height; j++) {
-			cout << "Scanning line " << j + 1 << " of " <<  slpfile.shape[i].info.height << endl;
+			std::cout << "Scanning line " << j + 1 << " of " <<  slpfile.shape[i].info.height << std::endl;
 
 			/* Get outline data for each line */
 			p_filedata = filedata.begin() + slpfile.shape[i].info.outline_offset + (4 * j);
@@ -118,7 +118,7 @@ void ExtractSLPFile(string filename)
 					case 8:
 					case 0x0C:
 						length = curbyte >> 2;
-//						cout << "\tCommand: " << command << ':' << length << endl;
+//						std::cout << "\tCommand: " << command << ':' << length << std::endl;
 						for (uint it = 0; it < length; it++) {
 							slpfile.shape[i].row[j].pixel[curpixelpos + it] = filedata[curpos + 1 + it];
 						}
@@ -131,7 +131,7 @@ void ExtractSLPFile(string filename)
 					case 9:
 					case 0x0D:
 						length = (curbyte & 0xFC) >> 2;
-//						cout << "\tCommand: " << command << ':' << length << endl;
+//						std::cout << "\tCommand: " << command << ':' << length << std::endl;
 						curpixelpos += length;
 						break;
 
@@ -142,14 +142,14 @@ void ExtractSLPFile(string filename)
 						}
 						curpixelpos += length;
 						curpos += length + 1;
-//						cout << "\tCommand: " << command << ':' << length << endl;
+//						std::cout << "\tCommand: " << command << ':' << length << std::endl;
 						break;
 
 					case CMD_Greater_Skip:
 						length = ((curbyte & 0xF0) << 4) + filedata[curpos + 1];
 						curpixelpos += length;
 						curpos++;
-//						cout << "\tCommand: " << command << ':' << length << endl;
+//						std::cout << "\tCommand: " << command << ':' << length << std::endl;
 						break;
 
 					case CMD_Copy_Transform:
@@ -164,7 +164,7 @@ void ExtractSLPFile(string filename)
 						}
 						curpixelpos += length;
 						curpos += length;
-//						cout << "\tCommand: " << command << ':' << length << endl;
+//						std::cout << "\tCommand: " << command << ':' << length << std::endl;
 						break;
 
 					case CMD_Fill:
@@ -178,7 +178,7 @@ void ExtractSLPFile(string filename)
 						}
 						curpixelpos += length;
 						curpos++; // colour at this byte
-//						cout << "\tCommand: " << command << ':' << length << endl;
+//						std::cout << "\tCommand: " << command << ':' << length << std::endl;
 						break;
 
 					case CMD_Transform:
@@ -193,7 +193,7 @@ void ExtractSLPFile(string filename)
 						}
 						curpixelpos += length;
 						curpos++;
-//						cout << "\tCommand: " << command << ':' << length << endl;
+//						std::cout << "\tCommand: " << command << ':' << length << std::endl;
 						break;
 
 					case CMD_Shadow:
@@ -206,11 +206,11 @@ void ExtractSLPFile(string filename)
 							slpfile.shape[i].row[j].pixel[curpixelpos + it] = 56;
 						}
 						curpixelpos += length;
-//						cout << "\tCommand: " << command << ':' << length << endl;
+//						std::cout << "\tCommand: " << command << ':' << length << std::endl;
 						break;
 
 					case CMD_Extended_Command:
-//						cout << "\tCommand: " << command << ":Extended Command:" << (uint)curbyte << endl;
+//						std::cout << "\tCommand: " << command << ":Extended Command:" << (uint)curbyte << std::endl;
 						// Uses whole byte
 						switch(curbyte) {
 							case 0x0E: // x-flip next command's bytes
@@ -236,30 +236,30 @@ void ExtractSLPFile(string filename)
 								for (uint it = 0; it < length; it++) {
 									slpfile.shape[i].row[j].pixel[curpixelpos + it] = (curbyte == 0x5E) ? 242 : 0;
 								}
-//								cout << "\t\tLength: " << length << '\n';
+//								std::cout << "\t\tLength: " << length << '\n';
 								curpixelpos += length;
 								curpos++;
 								break;
 
 							default:
-								cout << "CMD_What? " << command << endl;
+								std::cout << "CMD_What? " << command << std::endl;
 								/* Debug, as this shouldn't happen */
-								cout << filename << '\n';
-								string s;
+								std::cout << filename << '\n';
+								std::string s;
 								getline(std::cin, s);
 								return;
 						}
 						break;
 
 					case CMD_End_Row:
-//						cout << "\tCommand: 15:End of row" << endl;
+//						std::cout << "\tCommand: 15:End of row" << std::endl;
 						break;
 
 					default:
-						cout << "CMD_What? " << command << endl;
+						std::cout << "CMD_What? " << command << std::endl;
 						/* Debug, as this shouldn't happen */
-						cout << filename << endl;
-						string s;
+						std::cout << filename << std::endl;
+						std::string s;
 						getline(std::cin, s);
 						return;
 				}
@@ -269,7 +269,7 @@ void ExtractSLPFile(string filename)
 		}
 
 		/* @todo Tidy this mess up */
-		string filedir = filename.substr(0, filename.rfind(PATHSEP) + 1);
+		std::string filedir = filename.substr(0, filename.rfind(PATHSEP) + 1);
 		std::stringstream bmpfilename;
 		bmpfilename << filedir;
 		bmpfilename << "slpextracted/";
@@ -279,7 +279,7 @@ void ExtractSLPFile(string filename)
 		bmpfilename << i;
 		bmpfilename << ".bmp";
 		if (CreateBMP(bmpfilename.str(), &slpfile.shape[i])) {
-//			cout << "Saved BMP to: " << bmpfilename.str() << endl;
+//			std::cout << "Saved BMP to: " << bmpfilename.str() << std::endl;
 		}
 
 		for (int j = 0; j < slpfile.shape[i].info.height; j++) {
@@ -287,7 +287,7 @@ void ExtractSLPFile(string filename)
 		}
 		delete[] slpfile.shape[i].row;
 
-//		cout << endl;
+//		std::cout << std::endl;
 	}
 
 	delete[] slpfile.shape;

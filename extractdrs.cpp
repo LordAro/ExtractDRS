@@ -20,7 +20,7 @@
  * @param offset How far into the byte vector to start.
  * @return The converted uint.
  */
-uint vec2uint(const vector<byte> vec, int offset)
+uint vec2uint(const std::vector<byte> vec, int offset)
 {
 	return vec[offset] + (vec[offset + 1] << 8) + (vec[offset + 2] << 16) + (vec[offset + 3] << 24);
 }
@@ -30,18 +30,18 @@ uint vec2uint(const vector<byte> vec, int offset)
  * @note Taken from the OpenTTD project
  * @param name The name of the new directory
  */
-void GenCreateDirectory(const string &name)
+void GenCreateDirectory(const std::string &name)
 {
 	mkdir(name.c_str(), 0755);
 }
 
-vector<byte> ReadFile(const string &path)
+std::vector<byte> ReadFile(const std::string &path)
 {
 	std::ifstream file;
 	file.open(path.c_str(), std::ios::binary | std::ios::ate);
 	if (!file.is_open()) {
-		std::cerr << "Error opening file: " << path << endl;
-		return vector<byte>();
+		std::cerr << "Error opening file: " << path << std::endl;
+		return std::vector<byte>();
 	}
 
 	/* Get the whole file */
@@ -53,7 +53,7 @@ vector<byte> ReadFile(const string &path)
 	file.read((char *)memblock, size);
 	file.close();
 
-	vector<byte> data(memblock, memblock + size);
+	std::vector<byte> data(memblock, memblock + size);
 
 	delete[] memblock;
 	return data;
@@ -64,10 +64,10 @@ vector<byte> ReadFile(const string &path)
  * @param path The directory to look in for files
  * @return A list of paths to drs files, in string format
  */
-vector<string> ListFiles(const char *path)
+std::vector<std::string> ListFiles(const char *path)
 {
 	DIR *dirFile = opendir(path);
-	vector<string> filelist;
+	std::vector<std::string> filelist;
 	if (dirFile) {
 		struct dirent *hFile;
 		errno = 0;
@@ -76,14 +76,14 @@ vector<string> ListFiles(const char *path)
 			if (hFile->d_name[0] == '.') continue;
 
 			if (strstr(hFile->d_name, ".drs")) {
-				string fullfile = path;
+				std::string fullfile = path;
 				fullfile += hFile->d_name;
-				cout << "Found: " << fullfile << endl;
+				std::cout << "Found: " << fullfile << std::endl;
 				filelist.push_back(fullfile);
 			}
 		}
 	} else {
-		std::cerr << "Error opening directory: " << path << endl;
+		std::cerr << "Error opening directory: " << path << std::endl;
 	}
 	closedir(dirFile);
 	return filelist;
@@ -98,11 +98,11 @@ vector<string> ListFiles(const char *path)
 int main(int argc, char **argv)
 {
 	if (argc != 2 || argv[1][strlen(argv[1]) - 1] != '/') {
-		std::cerr << "Only one argument allowed, which must end in '/'" << endl;
+		std::cerr << "Only one argument allowed, which must end in '/'" << std::endl;
 		return 1;
 	}
-	string drsdirname = argv[1];
-	vector<string> filelist = ListFiles(drsdirname.c_str());
+	std::string drsdirname = argv[1];
+	std::vector<std::string> filelist = ListFiles(drsdirname.c_str());
 
 	GenCreateDirectory(EXTRACT_DIR);
 	for (uint i = 0; i < filelist.size(); i++) {

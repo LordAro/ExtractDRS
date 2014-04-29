@@ -17,25 +17,25 @@
  * Actually extract the drs file
  * @param path The path to the drs file
  */
-void ExtractDRSFile(const string &path)
+void ExtractDRSFile(const std::string &path)
 {
     int dirstartpos = path.rfind(PATHSEP) + 1;
-	string filename = path.substr(dirstartpos, path.length() - dirstartpos);
-	cout << "Reading " << path << ":\n";
+	std::string filename = path.substr(dirstartpos, path.length() - dirstartpos);
+	std::cout << "Reading " << path << ":\n";
 
-	const vector<byte> filedata = ReadFile(path);
+	const std::vector<byte> filedata = ReadFile(path);
 
 	if (filedata.empty() || filedata.size() < HEADER_SIZE) {
 		std::cerr << "File is too small: Only " << filedata.size() << " bytes long\n";
 		return;
 	}
-	vector<byte>::const_iterator p_filedata = filedata.begin();
+	std::vector<byte>::const_iterator p_filedata = filedata.begin();
 
 	/* Get the header */
 	DRS_Header header;
-	header.copyright = string(p_filedata, p_filedata + COPYRIGHT_SIZE);
+	header.copyright = std::string(p_filedata, p_filedata + COPYRIGHT_SIZE);
 	p_filedata += COPYRIGHT_SIZE;
-	header.version = string(p_filedata, p_filedata + VERSION_SIZE);
+	header.version = std::string(p_filedata, p_filedata + VERSION_SIZE);
 	p_filedata += VERSION_SIZE;
 	header.type = vec2uint(filedata, p_filedata - filedata.begin());
 	p_filedata += TYPE_SIZE;
@@ -51,22 +51,22 @@ void ExtractDRSFile(const string &path)
 		p_filedata++;
 
 		/* Get and re-order the extension */
-		tableinfos[i].extension = string(p_filedata, p_filedata + 3);
+		tableinfos[i].extension = std::string(p_filedata, p_filedata + 3);
 		std::swap(tableinfos[i].extension[0], tableinfos[i].extension[2]);
 		p_filedata += 3;
 
 		tableinfos[i].tbloffset = vec2uint(filedata, p_filedata - filedata.begin());
 		tableinfos[i].numfiles = vec2uint(filedata, p_filedata - filedata.begin() + 4);
 
-		cout << "TableInfo No." << i + 1 << ':' << endl;
-		cout << "\tCharacter: " << (int)tableinfos[i].character << endl;
-		cout << "\tExtension: " << tableinfos[i].extension << endl;
-		cout << "\tNumber of files: " << tableinfos[i].numfiles << endl;
+		std::cout << "TableInfo No." << i + 1 << ':' << std::endl;
+		std::cout << "\tCharacter: " << (int)tableinfos[i].character << std::endl;
+		std::cout << "\tExtension: " << tableinfos[i].extension << std::endl;
+		std::cout << "\tNumber of files: " << tableinfos[i].numfiles << std::endl;
 
 		tableinfos[i].fileinfo = new DRS_Table[tableinfos[i].numfiles];
 		/* Construct the directory path, without extension */
-		string filedir = EXTRACT_DIR + filename.substr(0, filename.length() - 4) + PATHSEP;
-		cout << "Files being extracted to: " << filedir << endl;
+		std::string filedir = EXTRACT_DIR + filename.substr(0, filename.length() - 4) + PATHSEP;
+		std::cout << "Files being extracted to: " << filedir << std::endl;
 		GenCreateDirectory(filedir);
 		for (uint j = 0; j < tableinfos[i].numfiles; j++) {
 			p_filedata = filedata.begin() + tableinfos[i].tbloffset + (j * TABLE_SIZE);
@@ -83,7 +83,7 @@ void ExtractDRSFile(const string &path)
 			std::ofstream outfile;
 			outfile.open(ss.str().c_str(), std::ios::binary);
 			if (!outfile.is_open()) {
-				std::cerr << "Error writing to " << ss.str() << endl;
+				std::cerr << "Error writing to " << ss.str() << std::endl;
 				continue;
 			}
 			p_filedata = filedata.begin() + tableinfos[i].fileinfo[j].fileoffset;
@@ -97,8 +97,8 @@ void ExtractDRSFile(const string &path)
 		}
 
 		delete[] tableinfos[i].fileinfo;
-		cout << endl;
+		std::cout << std::endl;
 	}
 	delete[] tableinfos;
-	cout << endl;
+	std::cout << std::endl;
 }

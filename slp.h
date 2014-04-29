@@ -12,13 +12,11 @@
 
 #include "extractdrs.h"
 
-using std::string;
-
 struct SLP_Header
 {
-	string version;
+	std::string version;
 	uint num_shapes;
-	string comment;
+	std::string comment;
 };
 
 struct SLP_Info
@@ -71,6 +69,6 @@ enum SLP_Commands
 	CMD_End_Row            = 0x0F,
 };
 
-void ExtractSLPFile(string filename);
+void ExtractSLPFile(std::string filename);
 
 #endif /* SLP_H */

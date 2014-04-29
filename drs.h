@@ -16,8 +16,6 @@
 #include "extractdrs.h"
 #include "slp.h"
 
-using std::string;
-
 static const byte HEADER_SIZE = 64;
 static const byte COPYRIGHT_SIZE = 40;
 static const byte VERSION_SIZE = 4;
@@ -28,9 +26,9 @@ static const byte EXTENSTION_SIZE = 3;
 
 struct DRS_Header
 {
-	string copyright;
-	string version;
-	string type;
+	std::string copyright;
+	std::string version;
+	std::string type;
 	uint numtables;
 	uint firstoffset;
 };
@@ -45,12 +43,12 @@ struct DRS_Table
 struct DRS_TableInfo
 {
 	char character;
-	string extension;
+	std::string extension;
 	uint tbloffset;
 	uint numfiles;
 	struct DRS_Table *fileinfo;
 };
 
-void ExtractDRSFile(const string &path);
+void ExtractDRSFile(const std::string &path);
 
 #endif /* DRS_H */

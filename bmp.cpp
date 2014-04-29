@@ -6,7 +6,7 @@
  */
 
 #include <fstream>
-#include <string.h>
+#include <cstring>
 
 #include "bmp.h"
 #include "palette.h"
@@ -18,7 +18,7 @@
  * @note Based on functions in OpenTTD project.
  * @return true iff the file was written.
  */
-bool CreateBMP(const string &filename, SLP_Shape *shape)
+bool CreateBMP(const std::string &filename, SLP_Shape *shape)
 {
 	uint width = shape->info.width;
 	uint height = shape->info.height;
