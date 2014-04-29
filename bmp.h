@@ -15,7 +15,7 @@ bool CreateBMP(const std::string &filename, SLP_Shape *shape);
 
 /** BMP File Header (stored in little endian) */
 struct BitmapFileHeader {
-	ushort type;
+	uint16 type;
 	uint size;
 	uint reserved;
 	uint off_bits;
@@ -25,7 +25,7 @@ struct BitmapFileHeader {
 struct BitmapInfoHeader {
 	uint size;
 	uint width, height;
-	ushort planes, bitcount;
+	uint16 planes, bitcount;
 	uint compression, sizeimage, xpels, ypels, clrused, clrimp;
 };
 

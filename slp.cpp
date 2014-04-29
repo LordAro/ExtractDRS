@@ -10,7 +10,7 @@
 #include "bmp.h"
 #include "slp.h"
 
-ushort vec2ushort(const std::vector<uint8> &vec, int offset)
+uint16 vec2uint16(const std::vector<uint8> &vec, int offset)
 {
 	return (vec[offset] << 0) + (vec[offset + 1] << 8);
 }
@@ -88,8 +88,8 @@ void ExtractSLPFile(std::string filename)
 			/* Get outline data for each line */
 			p_filedata = filedata.begin() + slpfile.shape[i].info.outline_offset + (4 * j);
 
-			slpfile.shape[i].row[j].left = vec2ushort(filedata, p_filedata - filedata.begin());
-			slpfile.shape[i].row[j].right = vec2ushort(filedata, p_filedata - filedata.begin() + 2);
+			slpfile.shape[i].row[j].left = vec2uint16(filedata, p_filedata - filedata.begin());
+			slpfile.shape[i].row[j].right = vec2uint16(filedata, p_filedata - filedata.begin() + 2);
 
 			p_filedata =  filedata.begin() + slpfile.shape[i].info.data_offset + (4 * j);
 			slpfile.shape[i].row[j].datastart = vec2uint(filedata, p_filedata - filedata.begin());

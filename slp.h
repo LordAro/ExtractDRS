@@ -34,8 +34,8 @@ struct SLP_Info
 struct SLP_Row
 {
 	uint8* pixel; // 8bpp
-	ushort left;
-	ushort right;
+	uint16 left;
+	uint16 right;
 	uint datastart; // start of the data for the row
 };
 
