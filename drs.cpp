@@ -48,7 +48,7 @@ void ExtractDRSFile(const std::string &path)
 	for (uint i = 0; i < header.numtables; i++) {
 		p_filedata = filedata.begin() + HEADER_SIZE + (i * TABLE_SIZE);
 		tableinfos[i].character = *p_filedata;
-		p_filedata++;
+		++p_filedata;
 
 		/* Get and re-order the extension */
 		tableinfos[i].extension = std::string(p_filedata, p_filedata + 3);

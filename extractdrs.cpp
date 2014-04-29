@@ -20,7 +20,7 @@
  * @param offset How far into the vector to start.
  * @return The converted uint.
  */
-uint vec2uint(const std::vector<uint8> vec, int offset)
+uint vec2uint(const std::vector<uint8> &vec, int offset)
 {
 	return vec[offset] + (vec[offset + 1] << 8) + (vec[offset + 2] << 16) + (vec[offset + 3] << 24);
 }

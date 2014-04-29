@@ -23,6 +23,6 @@ typedef unsigned char uint8;
 void GenCreateDirectory(const std::string &name);
 std::vector<uint8> ReadFile(const std::string &path);
 
-uint vec2uint(const std::vector<uint8> vec, int offset);
+uint vec2uint(const std::vector<uint8> &vec, int offset);
 
 #endif /* EXTRACTDRS_H */

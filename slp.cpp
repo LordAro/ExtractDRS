@@ -10,7 +10,7 @@
 #include "bmp.h"
 #include "slp.h"
 
-ushort vec2ushort(const std::vector<uint8> vec, int offset)
+ushort vec2ushort(const std::vector<uint8> &vec, int offset)
 {
 	return (vec[offset] << 0) + (vec[offset + 1] << 8);
 }
