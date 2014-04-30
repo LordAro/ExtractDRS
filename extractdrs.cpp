@@ -66,12 +66,12 @@ std::vector<uint8> ReadFile(const std::string &path)
  */
 std::vector<std::string> ListFiles(const char *path)
 {
-	DIR *dirFile = opendir(path);
 	std::vector<std::string> filelist;
+	DIR *dirFile = opendir(path);
 	if (dirFile) {
 		struct dirent *hFile;
 		errno = 0;
-		while ((hFile = readdir(dirFile)) != NULL) {
+		while ((hFile = readdir(dirFile)) != nullptr) {
 			/* Ignore hidden files */
 			if (hFile->d_name[0] == '.') continue;
 
@@ -101,8 +101,7 @@ int main(int argc, char **argv)
 		std::cerr << "Only one argument allowed, which must end in '/'" << std::endl;
 		return 1;
 	}
-	std::string drsdirname = argv[1];
-	std::vector<std::string> filelist = ListFiles(drsdirname.c_str());
+	std::vector<std::string> filelist = ListFiles(argv[1]);
 
 	GenCreateDirectory(EXTRACT_DIR);
 	for (uint i = 0; i < filelist.size(); i++) {
