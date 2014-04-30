@@ -82,10 +82,10 @@ std::vector<std::string> ListFiles(const char *path)
 				filelist.push_back(fullfile);
 			}
 		}
+		closedir(dirFile);
 	} else {
 		std::cerr << "Error opening directory: " << path << std::endl;
 	}
-	closedir(dirFile);
 	return filelist;
 }
 
