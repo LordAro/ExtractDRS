@@ -8,11 +8,7 @@
 #ifndef EXTRACTDRS_H
 #define EXTRACTDRS_H
 
-#include <cerrno>
-#include <dirent.h>
-#include <iostream>
 #include <string>
-#include <sys/types.h>
 #include <vector>
 
 static const std::string PATHSEP = "/";

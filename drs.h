@@ -12,41 +12,44 @@
 
 #include <iostream>
 #include <string>
+#include <vector>
 
 #include "extractdrs.h"
+#include "filereader.h"
 #include "slp.h"
 
 static const uint8 HEADER_SIZE = 64;
-static const uint8 COPYRIGHT_SIZE = 40;
-static const uint8 VERSION_SIZE = 4;
-static const uint8 TYPE_SIZE = 12;
-
 static const uint8 TABLE_SIZE = 12;
-static const uint8 EXTENSTION_SIZE = 3;
 
-struct DRS_Header
-{
+struct DRSTable {
+	int file_id;
+	int file_offset;
+	int file_size;
+};
+
+struct DRSTableInfo {
+	char character;
+	std::string extension;
+	int table_offset;
+	int num_files;
+	std::vector<DRSTable> file_infos;
+
+};
+
+class DRSFile {
+public:
+	void ReadHeader(BinaryFileReader &bfr);
+	DRSTableInfo ReadTableInfo(BinaryFileReader &bfr);
+	DRSTable ReadTable(BinaryFileReader &bfr);
+
+	/* Header */
 	std::string copyright;
 	std::string version;
 	std::string type;
-	uint numtables;
-	uint firstoffset;
-};
+	int num_tables;
+	int first_offset;
 
-struct DRS_Table
-{
-	uint fileid;
-	uint fileoffset;
-	uint filesize;
-};
-
-struct DRS_TableInfo
-{
-	char character;
-	std::string extension;
-	uint tbloffset;
-	uint numfiles;
-	struct DRS_Table *fileinfo;
+	std::vector<DRSTableInfo> infos;
 };
 
 void ExtractDRSFile(const std::string &path);

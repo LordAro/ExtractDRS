@@ -83,7 +83,7 @@ void ExtractSLPFile(std::string filename)
 		/* For each row in the shape */
 		slpfile.shape[i].row = new SLP_Row[slpfile.shape[i].info.height];
 		for (int j = 0; j < slpfile.shape[i].info.height; j++) {
-			std::cout << "Scanning line " << j + 1 << " of " <<  slpfile.shape[i].info.height << std::endl;
+//			std::cout << "Scanning line " << j + 1 << " of " <<  slpfile.shape[i].info.height << std::endl;
 
 			/* Get outline data for each line */
 			p_filedata = filedata.begin() + slpfile.shape[i].info.outline_offset + (4 * j);
@@ -114,8 +114,8 @@ void ExtractSLPFile(std::string filename)
 				command = GetCommand(curbyte);
 				switch(command) {
 					case CMD_Lesser_Block_Copy:
-					case 4:
-					case 8:
+					case 0x04:
+					case 0x08:
 					case 0x0C:
 						length = curbyte >> 2;
 //						std::cout << "\tCommand: " << command << ':' << length << std::endl;
@@ -127,8 +127,8 @@ void ExtractSLPFile(std::string filename)
 						break;
 
 					case CMD_Lesser_Skip:
-					case 5:
-					case 9:
+					case 0x05:
+					case 0x09:
 					case 0x0D:
 						length = (curbyte & 0xFC) >> 2;
 //						std::cout << "\tCommand: " << command << ':' << length << std::endl;
@@ -158,6 +158,7 @@ void ExtractSLPFile(std::string filename)
 							length = filedata[curpos + 1];
 							curpos++;
 						}
+						std::cout << "Warning: CMD_Copy_Transform not fully implemented" << std::endl;
 						for (uint it = 0; it < length; it++) {
 							/* @todo player colours */
 							slpfile.shape[i].row[j].pixel[curpixelpos + it] = filedata[curpos + it];
@@ -187,6 +188,7 @@ void ExtractSLPFile(std::string filename)
 							length = filedata[curpos + 1];
 							curpos++;
 						}
+						std::cout << "Warning: CMD_Transform not fully implemented" << std::endl;
 						for (uint it = 0; it < length; it++) {
 							/* @todo something...? */
 							slpfile.shape[i].row[j].pixel[curpixelpos + it] = filedata[curpos + 1];
@@ -215,11 +217,13 @@ void ExtractSLPFile(std::string filename)
 						switch(curbyte) {
 							case 0x0E: // x-flip next command's bytes
 							case 0x1E:
+								std::cout << "Warning: 0x0E, 0x1E commands not fully implemented" << std::endl;
 								/* @todo implement */
 								break;
 
 							case 0x2E: // set transform colour
 							case 0x3E:
+								std::cout << "Warning: 0x2E, 0x3E commands not fully implemented" << std::endl;
 								/* @todo implement */
 								break;
 

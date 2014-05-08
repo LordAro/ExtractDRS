@@ -7,8 +7,11 @@
 
 /** @file extractdrs.cpp Starting of ExtractDRS and some preliminary functions */
 
+#include <cerrno>
 #include <cstring>
+#include <dirent.h>
 #include <fstream>
+#include <sys/types.h>
 #include <sys/stat.h>
 
 #include "extractdrs.h"

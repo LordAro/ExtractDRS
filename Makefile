@@ -8,7 +8,7 @@ OBJDIR=obj
 CXX=clang++
 CXXFLAGS=-Wall -Wextra -pedantic -g -std=c++11
 
-CXXFILES=extractdrs.cpp drs.cpp slp.cpp bmp.cpp
+CXXFILES=bmp.cpp drs.cpp extractdrs.cpp filereader.cpp slp.cpp
 
 OBJFILES=$(addprefix $(OBJDIR)/,$(CXXFILES:.cpp=.o))
 TARGET=extractdrs
@@ -19,7 +19,7 @@ $(TARGET): $(OBJFILES)
 	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJFILES)
 
 run: $(TARGET)
-	./$(TARGET)
+	./$(TARGET) data/
 
 $(OBJDIR)/%.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<

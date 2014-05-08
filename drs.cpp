@@ -7,11 +7,43 @@
 
 /** @file drs.cpp Functions related to extracting .drs files */
 
-#include <iterator>
-#include <sstream>
+#include <cassert>
 #include <fstream>
 
 #include "drs.h"
+#include "filereader.h"
+
+void DRSFile::ReadHeader(BinaryFileReader &bfr)
+{
+	this->copyright    = bfr.ReadString(40);
+	this->version      = bfr.ReadString( 4);
+	this->type         = bfr.ReadString(12);
+	this->num_tables   = bfr.ReadNum<int>();
+	this->first_offset = bfr.ReadNum<int>();
+}
+
+DRSTableInfo DRSFile::ReadTableInfo(BinaryFileReader &bfr)
+{
+	DRSTableInfo dti;
+	dti.character    = bfr.ReadNum<uint8>();
+	dti.extension    = bfr.ReadString(3);
+
+	/* Extension is reversed, for whatever reason. */
+	std::swap(dti.extension[0], dti.extension[2]);
+
+	dti.table_offset = bfr.ReadNum<int>();
+	dti.num_files    = bfr.ReadNum<int>();
+	return dti;
+}
+
+DRSTable DRSFile::ReadTable(BinaryFileReader &bfr)
+{
+	DRSTable dt;
+	dt.file_id     = bfr.ReadNum<int>();
+	dt.file_offset = bfr.ReadNum<int>();
+	dt.file_size   = bfr.ReadNum<int>();
+	return dt;
+}
 
 /**
  * Actually extract the drs file
@@ -23,82 +55,51 @@ void ExtractDRSFile(const std::string &path)
 	std::string filename = path.substr(dirstartpos, path.length() - dirstartpos);
 	std::cout << "Reading " << path << ":\n";
 
-	const std::vector<uint8> filedata = ReadFile(path);
+	BinaryFileReader binfile(filename);
+	DRSFile drsfile;
+	std::string filedir = EXTRACT_DIR + filename.substr(0, filename.length() - 4) + PATHSEP;
+	std::cout << "Files being extracted to: " << filedir << std::endl;
+	GenCreateDirectory(filedir);
 
-	if (filedata.empty() || filedata.size() < HEADER_SIZE) {
-		std::cerr << "File is too small: Only " << filedata.size() << " bytes long\n";
+	if (binfile.GetRemaining() < HEADER_SIZE) {
+		std::cerr << "File is too small: Only " << binfile.GetRemaining() << " bytes long\n";
 		return;
 	}
-	std::vector<uint8>::const_iterator p_filedata = filedata.begin();
 
-	/* Get the header */
-	DRS_Header header;
-	header.copyright = std::string(p_filedata, p_filedata + COPYRIGHT_SIZE);
-	p_filedata += COPYRIGHT_SIZE;
-	header.version = std::string(p_filedata, p_filedata + VERSION_SIZE);
-	p_filedata += VERSION_SIZE;
-	header.type = vec2uint(filedata, p_filedata - filedata.begin());
-	p_filedata += TYPE_SIZE;
+	drsfile.ReadHeader(binfile);
 
-	header.numtables = vec2uint(filedata, p_filedata - filedata.begin());
-	header.firstoffset = vec2uint(filedata, p_filedata - filedata.begin() + 4);
+	for (int i = 0; i < drsfile.num_tables; i++) {
+		drsfile.infos.push_back(drsfile.ReadTableInfo(binfile));
+	}
 
-	/* Get tables */
-	DRS_TableInfo *tableinfos = new DRS_TableInfo[header.numtables];
-	for (uint i = 0; i < header.numtables; i++) {
-		p_filedata = filedata.begin() + HEADER_SIZE + (i * TABLE_SIZE);
-		tableinfos[i].character = *p_filedata;
-		++p_filedata;
+	for (int i = 0; i < drsfile.num_tables; i++) {
+		for (int j = 0; j < drsfile.infos[i].num_files; j++) {
+			assert((int)binfile.GetPosition() == drsfile.infos[i].table_offset + j * TABLE_SIZE);
 
-		/* Get and re-order the extension */
-		tableinfos[i].extension = std::string(p_filedata, p_filedata + 3);
-		std::swap(tableinfos[i].extension[0], tableinfos[i].extension[2]);
-		p_filedata += 3;
+			drsfile.infos[i].file_infos.push_back(drsfile.ReadTable(binfile));
+		}
+	}
 
-		tableinfos[i].tbloffset = vec2uint(filedata, p_filedata - filedata.begin());
-		tableinfos[i].numfiles = vec2uint(filedata, p_filedata - filedata.begin() + 4);
+	for (int i = 0; i < drsfile.num_tables; i++) {
+		for (int j = 0; j < drsfile.infos[i].num_files; j++) {
+			assert((int)binfile.GetPosition() == drsfile.infos[i].file_infos[j].file_offset);
 
-		std::cout << "TableInfo No." << i + 1 << ':' << std::endl;
-		std::cout << "\tCharacter: " << (int)tableinfos[i].character << std::endl;
-		std::cout << "\tExtension: " << tableinfos[i].extension << std::endl;
-		std::cout << "\tNumber of files: " << tableinfos[i].numfiles << std::endl;
-
-		tableinfos[i].fileinfo = new DRS_Table[tableinfos[i].numfiles];
-		/* Construct the directory path, without extension */
-		std::string filedir = EXTRACT_DIR + filename.substr(0, filename.length() - 4) + PATHSEP;
-		std::cout << "Files being extracted to: " << filedir << std::endl;
-		GenCreateDirectory(filedir);
-		for (uint j = 0; j < tableinfos[i].numfiles; j++) {
-			p_filedata = filedata.begin() + tableinfos[i].tbloffset + (j * TABLE_SIZE);
-
-			tableinfos[i].fileinfo[j].fileid = vec2uint(filedata, p_filedata - filedata.begin());
-			tableinfos[i].fileinfo[j].fileoffset = vec2uint(filedata, p_filedata - filedata.begin() + 4);
-			tableinfos[i].fileinfo[j].filesize = vec2uint(filedata, p_filedata - filedata.begin() + 8);
-
-			std::stringstream ss;
-			ss << filedir;
-			ss << tableinfos[i].fileinfo[j].fileid;
-			ss << '.';
-			ss << tableinfos[i].extension;
-			std::ofstream outfile;
-			outfile.open(ss.str().c_str(), std::ios::binary);
-			if (!outfile.is_open()) {
-				std::cerr << "Error writing to " << ss.str() << std::endl;
+			std::string out_file = filedir;
+			out_file += std::to_string(drsfile.infos[i].file_infos[j].file_id);
+			out_file += '.';
+			out_file += drsfile.infos[i].extension;
+			std::ofstream out_fs(out_file, std::ios::binary);
+			if (!out_fs.is_open()) {
+				std::cerr << "Error writing to " << out_file << std::endl;
+				/* TODO: Abort instead? */
+				binfile.SkipBytes(drsfile.infos[i].file_infos[j].file_size);
 				continue;
 			}
-			p_filedata = filedata.begin() + tableinfos[i].fileinfo[j].fileoffset;
-			//outfile.write(*p_filedata, tableinfos[i].fileinfo[j].filesize);
-			std::ostream_iterator<uint8> oi(outfile);
-			std::copy(p_filedata, p_filedata + tableinfos[i].fileinfo[j].filesize, oi);
-			outfile.close();
-			if (tableinfos[i].extension == "slp") {
-				ExtractSLPFile(ss.str());
+			binfile.ReadBlob(out_fs, drsfile.infos[i].file_infos[j].file_size);
+			out_fs.close();
+			if (drsfile.infos[i].extension == "slp") {
+				ExtractSLPFile(out_file);
 			}
 		}
-
-		delete[] tableinfos[i].fileinfo;
-		std::cout << std::endl;
 	}
-	delete[] tableinfos;
-	std::cout << std::endl;
 }
