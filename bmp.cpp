@@ -5,6 +5,7 @@
  * See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with ExtractDRS. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <iostream>
 #include <fstream>
 #include <cstring>
 
@@ -18,10 +19,10 @@
  * @note Based on functions in OpenTTD project.
  * @return true iff the file was written.
  */
-bool CreateBMP(const std::string &filename, SLP_Shape *shape)
+bool CreateBMP(const std::string &filename, SLPShape *shape)
 {
-	uint width = shape->info.width;
-	uint height = shape->info.height;
+	uint width = shape->width;
+	uint height = shape->height;
 
 	std::ofstream f;
 	f.open(filename.c_str(), std::ios::binary);
@@ -91,7 +92,7 @@ bool CreateBMP(const std::string &filename, SLP_Shape *shape)
 	/* Start at the bottom, since bitmaps are stored bottom up */
 	for (uint n = height; n != 0; n--) {
 		/* Write to file */
-		f.write(reinterpret_cast<char *>(shape->row[n - 1].pixel), width);
+		f.write(reinterpret_cast<char *>(&shape->rows[n - 1].pixels[0]), width);
 		if (bytewidth != width) {
 			char *zeros = new char[bytewidth - width]();
 			f.write(zeros, bytewidth - width);

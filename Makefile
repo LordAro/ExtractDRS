@@ -15,7 +15,7 @@ TARGET=extractdrs
 
 all: $(TARGET)
 
-$(TARGET): $(OBJFILES)
+$(TARGET): create $(OBJFILES)
 	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJFILES)
 
 run: $(TARGET)
@@ -23,6 +23,9 @@ run: $(TARGET)
 
 $(OBJDIR)/%.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+create:
+	mkdir -p $(OBJDIR)
 
 clean:
 	for i in $(OBJFILES) $(DEPEND) $(TARGET);\

@@ -5,296 +5,244 @@
  * See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with ExtractDRS. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <cassert>
+#include <iostream>
 #include <sstream>
 
 #include "bmp.h"
+#include "filereader.h"
 #include "slp.h"
 
-uint16 vec2uint16(const std::vector<uint8> &vec, int offset)
+static const uint16 EMPTY_ROW = 0x8000;
+
+SLPCommand GetCommand(uint8 byte)
 {
-	return (vec[offset] << 0) + (vec[offset + 1] << 8);
+	return static_cast<SLPCommand>(byte & 0x0F);
 }
 
-uint GetCommand(uint number)
+SLPShape SLPFile::ReadShapeInfo(BinaryFileReader &bfr)
 {
-	return number & 0xF;
+	SLPShape ss;
+	ss.data_offset    = bfr.ReadNum<uint>();
+	ss.outline_offset = bfr.ReadNum<uint>();
+	ss.palette_offset = bfr.ReadNum<uint>();
+	ss.properties     = bfr.ReadNum<uint>();
+	ss.width          = bfr.ReadNum< int>();
+	ss.height         = bfr.ReadNum< int>();
+	ss.hotspot_x      = bfr.ReadNum< int>();
+	ss.hotspot_y      = bfr.ReadNum< int>();
+	return ss;
 }
 
-void ExtractSLPFile(std::string filename)
+SLPRow SLPFile::ReadRowOutlineOffsets(BinaryFileReader &bfr)
 {
-	SLP_File slpfile;
+	SLPRow sr;
+	sr.left  = bfr.ReadNum<uint16>();
+	sr.right = bfr.ReadNum<uint16>();
+	return sr;
+}
+
+std::vector<uint8> SLPFile::ReadRowData(BinaryFileReader &bfr, int width, uint16 left, uint16 right)
+{
+	std::vector<uint8> pixels(width); // Init with all zeros
+	if (left == EMPTY_ROW) {
+		bfr.SkipBytes(1); // "Read" the byte regardless
+		return pixels;
+	}
+
+	SLPCommand command = CMD_End_Row;
+	uint8 curr_byte = 0;
+
+	uint cur_pixel_pos = left;
+	do {
+		/* Used for render hints from extended commands
+		 * Note: Out of sync for the first byte, but irrelevant */
+//		uint8 prev_byte = curr_byte;
+		uint length = 0;
+
+		curr_byte = bfr.ReadNum<uint8>();
+		command = GetCommand(curr_byte);
+
+		switch(command) {
+			case CMD_Lesser_Block_Copy:
+			case 0x04:
+			case 0x08:
+			case 0x0C:
+				length = curr_byte >> 2;
+
+				for (uint it = 0; it < length; it++) {
+					pixels.at(cur_pixel_pos++) = bfr.ReadNum<uint8>();
+				}
+				break;
+
+			case CMD_Lesser_Skip:
+			case 0x05:
+			case 0x09:
+			case 0x0D:
+				length = (curr_byte & 0xFC) >> 2;
+				cur_pixel_pos += length;
+				break;
+
+			case CMD_Greater_Block_Copy:
+				length = ((curr_byte & 0xF0) << 4) + bfr.ReadNum<uint8>();
+				for (uint it = 0; it < length; it++) {
+					pixels.at(cur_pixel_pos++) = bfr.ReadNum<uint8>();
+				}
+				break;
+
+			case CMD_Greater_Skip:
+				length = ((curr_byte & 0xF0) << 4) + bfr.ReadNum<uint8>();
+				cur_pixel_pos += length;
+				break;
+
+			case CMD_Copy_Transform:
+				length = (curr_byte & 0xF0) >> 4; // high nibble
+				if (length == 0) length = bfr.ReadNum<uint8>();
+
+				std::cerr << "Warning: CMD_Copy_Transform not fully implemented" << std::endl;
+				for (uint it = 0; it < length; it++) {
+					/* @todo player colours - some transform function is needed */
+					pixels.at(cur_pixel_pos++) = bfr.ReadNum<uint8>();
+				}
+				break;
+
+			case CMD_Fill: {
+				length = (curr_byte & 0xF0) >> 4;
+				if (length == 0) length = bfr.ReadNum<uint8>();
+
+				uint8 fill_col = bfr.ReadNum<uint8>();
+				for (uint it = 0; it < length; it++) {
+					pixels.at(cur_pixel_pos++) = fill_col;
+				}
+				break;
+			}
+
+			case CMD_Transform: {
+				length = (curr_byte & 0xF0) >> 4;
+				if (length == 0) length = bfr.ReadNum<uint8>();
+
+				std::cerr << "Warning: CMD_Transform not fully implemented" << std::endl;
+
+				/* @todo something...? */
+				uint8 col = bfr.ReadNum<uint8>();
+				for (uint it = 0; it < length; it++) {
+					pixels.at(cur_pixel_pos++) = col;
+				}
+				break;
+			}
+
+			case CMD_Shadow:
+				length = (curr_byte & 0xF0) >> 4;
+				if (length == 0) length = bfr.ReadNum<uint8>();
+
+				for (uint it = 0; it < length; it++) {
+					pixels.at(cur_pixel_pos++) = 56;
+				}
+				break;
+
+			case CMD_Extended_Command:
+				// Uses whole byte
+				switch(curr_byte) {
+					case 0x0E: // x-flip next command's bytes
+					case 0x1E:
+						std::cerr << "Warning: 0x0E, 0x1E commands not fully implemented" << std::endl;
+						/* @todo implement */
+						break;
+
+					case 0x2E: // set transform colour
+					case 0x3E:
+						std::cerr << "Warning: 0x2E, 0x3E commands not fully implemented" << std::endl;
+						/* @todo implement */
+						break;
+
+					case 0x4E: // Draw 'special colour 1', for 1 byte
+					case 0x6E: // Draw 'special colour 2', for 1 byte
+						pixels.at(cur_pixel_pos++) = (curr_byte == 0x4E) ? 242 : 0;
+						break;
+
+					case 0x5E: // Draw 'special colour 1', for (curr_byte + 1) bytes
+					case 0x7E: // Draw 'special colour 2', for (curr_byte + 1) bytes
+						length = bfr.ReadNum<uint8>();
+
+						for (uint it = 0; it < length; it++) {
+							pixels.at(cur_pixel_pos++) = (curr_byte == 0x5E) ? 242 : 0;
+						}
+						break;
+
+					default:
+						std::cerr << "CMD_Extended_Command_What? " << (uint)command << std::endl;
+						exit(1); // TODO: Handle better
+				}
+				break;
+
+			case CMD_End_Row:
+				break;
+
+			default:
+				std::cerr << "CMD_What? " << (uint)command << std::endl;
+				exit(1); // TODO: Handle better
+		}
+
+	} while (command != CMD_End_Row);
+
+	return pixels;
+}
+
+void ExtractSLPFile(const std::string &filename)
+{
+	SLPFile slpfile;
+	BinaryFileReader binfile(filename);
 	std::cout << "Extracting " << filename << std::endl;
 
 	/* Get the file id */
 	std::string idstr = filename.substr(filename.rfind(PATHSEP) + 1, filename.rfind('.') - filename.rfind(PATHSEP) - 1);
-	std::stringstream(idstr) >> slpfile.id;
+	slpfile.id = std::stoi(idstr);
 
-	const std::vector<uint8> filedata = ReadFile(filename);
-	if (filedata.empty() || filedata.size() < 64) {
-		// (Header + 1 shapedata)
-		std::cerr << "File is too small. Only " << filedata.size() << " bytes long." << std::endl;
+	if (binfile.GetRemaining() < 64) {
+		std::cerr << "File is too small. Only " << binfile.GetRemaining() << " bytes long." << std::endl;
 		return;
 	}
-	std::vector<uint8>::const_iterator p_filedata = filedata.begin();
 
-	slpfile.header.version = std::string(p_filedata, p_filedata + 4);
-	p_filedata += 4;
-	slpfile.header.num_shapes = vec2uint(filedata, p_filedata - filedata.begin());
-	p_filedata += 4;
-	slpfile.header.comment = std::string(p_filedata, p_filedata + 24);
+	slpfile.version    = binfile.ReadString( 4);
+	slpfile.num_shapes = binfile.ReadNum<int>();
+	slpfile.comment    = binfile.ReadString(24);
 
-//	std::cout << "Version: " << slpfile.header.version << std::endl;
-//	std::cout << "Num shapes: " << slpfile.header.num_shapes << std::endl;
-//	std::cout << "Comment: " << slpfile.header.comment << std::endl;
-
-	if (slpfile.header.num_shapes == 0) return;
-	/* For each shape */
-	slpfile.shape = new SLP_Shape[slpfile.header.num_shapes];
-	for (uint i = 0; i < slpfile.header.num_shapes; i++) {
-//		cout << "Shape " << i + 1 << endl;
-		p_filedata = filedata.begin() + 32 + (32 * i);
-
-		slpfile.shape[i].info.data_offset    = vec2uint(filedata, p_filedata - filedata.begin());
-		slpfile.shape[i].info.outline_offset = vec2uint(filedata, p_filedata - filedata.begin() + 4);
-		slpfile.shape[i].info.palette_offset = vec2uint(filedata, p_filedata - filedata.begin() + 8);
-		slpfile.shape[i].info.properties     = vec2uint(filedata, p_filedata - filedata.begin() + 12);
-		slpfile.shape[i].info.width          = vec2uint(filedata, p_filedata - filedata.begin() + 16);
-		slpfile.shape[i].info.height         = vec2uint(filedata, p_filedata - filedata.begin() + 20);
-		slpfile.shape[i].info.hotspot_x      = vec2uint(filedata, p_filedata - filedata.begin() + 24);
-		slpfile.shape[i].info.hotspot_y      = vec2uint(filedata, p_filedata - filedata.begin() + 28);
-
-		if (slpfile.shape[i].info.data_offset > filedata.size() || slpfile.shape[i].info.outline_offset > filedata.size()) return;
-
-//		std::cout << "Data Offsets: " << slpfile.shape[i].info.data_offset << std::endl;
-//		std::cout << "Outline Offset: " << slpfile.shape[i].info.outline_offset << std::endl;
-		// Palette offset is 0 for all drs files
-//		std::cout << "Palette Offset: " << slpfile.shape[i].info.palette_offset << std::endl;
-
-		// Properties = 0, 8, 16 or 24
-//		std::cout << "Properties: " << slpfile.shape[i].info.properties << std::endl;
-//		std::cout << "Width: " << slpfile.shape[i].info.width << std::endl;
-//		std::cout << "Height: " << slpfile.shape[i].info.height << std::endl;
-
-		// Note: hotspot_x/hotspot_y could be outside the width/height
-//		std::cout << "X Hotspot: " << slpfile.shape[i].info.hotspot_x << std::endl;
-//		std::cout << "Y Hotspot: " << slpfile.shape[i].info.hotspot_y << std::endl;
-
-		if (slpfile.shape[i].info.height == 0 || slpfile.shape[i].info.width == 0) return;
-		/* For each row in the shape */
-		slpfile.shape[i].row = new SLP_Row[slpfile.shape[i].info.height];
-		for (int j = 0; j < slpfile.shape[i].info.height; j++) {
-//			std::cout << "Scanning line " << j + 1 << " of " <<  slpfile.shape[i].info.height << std::endl;
-
-			/* Get outline data for each line */
-			p_filedata = filedata.begin() + slpfile.shape[i].info.outline_offset + (4 * j);
-
-			slpfile.shape[i].row[j].left = vec2uint16(filedata, p_filedata - filedata.begin());
-			slpfile.shape[i].row[j].right = vec2uint16(filedata, p_filedata - filedata.begin() + 2);
-
-			p_filedata =  filedata.begin() + slpfile.shape[i].info.data_offset + (4 * j);
-			slpfile.shape[i].row[j].datastart = vec2uint(filedata, p_filedata - filedata.begin());
-
-			uint curpos = slpfile.shape[i].row[j].datastart;
-			uint command = 0x0F;
-			uint8 curbyte = 0;
-
-			slpfile.shape[i].row[j].pixel = new uint8[slpfile.shape[i].info.width]();
-
-			/* Leave a line blank */
-			if (slpfile.shape[i].row[j].left == 0x8000) continue;
-
-			int curpixelpos = slpfile.shape[i].row[j].left;
-			do {
-				/* Used for render hints from extended commands
-				 * Note: Out of sync for the first byte, but irrelevant */
-//				uint8 prevbyte = curbyte;
-				uint length = 0;
-
-				curbyte = filedata[curpos];
-				command = GetCommand(curbyte);
-				switch(command) {
-					case CMD_Lesser_Block_Copy:
-					case 0x04:
-					case 0x08:
-					case 0x0C:
-						length = curbyte >> 2;
-//						std::cout << "\tCommand: " << command << ':' << length << std::endl;
-						for (uint it = 0; it < length; it++) {
-							slpfile.shape[i].row[j].pixel[curpixelpos + it] = filedata[curpos + 1 + it];
-						}
-						curpos += length;
-						curpixelpos += length;
-						break;
-
-					case CMD_Lesser_Skip:
-					case 0x05:
-					case 0x09:
-					case 0x0D:
-						length = (curbyte & 0xFC) >> 2;
-//						std::cout << "\tCommand: " << command << ':' << length << std::endl;
-						curpixelpos += length;
-						break;
-
-					case CMD_Greater_Block_Copy:
-						length = ((curbyte & 0xF0) << 4) + filedata[curpos + 1];
-						for (uint it = 0; it < length; it++) {
-							slpfile.shape[i].row[j].pixel[curpixelpos + it] = filedata[curpos + 2 + it];
-						}
-						curpixelpos += length;
-						curpos += length + 1;
-//						std::cout << "\tCommand: " << command << ':' << length << std::endl;
-						break;
-
-					case CMD_Greater_Skip:
-						length = ((curbyte & 0xF0) << 4) + filedata[curpos + 1];
-						curpixelpos += length;
-						curpos++;
-//						std::cout << "\tCommand: " << command << ':' << length << std::endl;
-						break;
-
-					case CMD_Copy_Transform:
-						length = (curbyte & 0xF0) >> 4; // high nibble
-						if (length == 0) {
-							length = filedata[curpos + 1];
-							curpos++;
-						}
-						std::cout << "Warning: CMD_Copy_Transform not fully implemented" << std::endl;
-						for (uint it = 0; it < length; it++) {
-							/* @todo player colours */
-							slpfile.shape[i].row[j].pixel[curpixelpos + it] = filedata[curpos + it];
-						}
-						curpixelpos += length;
-						curpos += length;
-//						std::cout << "\tCommand: " << command << ':' << length << std::endl;
-						break;
-
-					case CMD_Fill:
-						length = (curbyte & 0xF0) >> 4;
-						if (length == 0) {
-							length = filedata[curpos + 1];
-							curpos++;
-						}
-						for (uint it = 0; it < length; it++) {
-							slpfile.shape[i].row[j].pixel[curpixelpos + it] = filedata[curpos + 1];
-						}
-						curpixelpos += length;
-						curpos++; // colour at this byte
-//						std::cout << "\tCommand: " << command << ':' << length << std::endl;
-						break;
-
-					case CMD_Transform:
-						length = (curbyte & 0xF0) >> 4;
-						if (length == 0) {
-							length = filedata[curpos + 1];
-							curpos++;
-						}
-						std::cout << "Warning: CMD_Transform not fully implemented" << std::endl;
-						for (uint it = 0; it < length; it++) {
-							/* @todo something...? */
-							slpfile.shape[i].row[j].pixel[curpixelpos + it] = filedata[curpos + 1];
-						}
-						curpixelpos += length;
-						curpos++;
-//						std::cout << "\tCommand: " << command << ':' << length << std::endl;
-						break;
-
-					case CMD_Shadow:
-						length = (curbyte & 0xF0) >> 4;
-						if (length == 0) {
-							length = filedata[curpos + 1];
-							curpos++;
-						}
-						for (uint it = 0; it < length; it++) {
-							slpfile.shape[i].row[j].pixel[curpixelpos + it] = 56;
-						}
-						curpixelpos += length;
-//						std::cout << "\tCommand: " << command << ':' << length << std::endl;
-						break;
-
-					case CMD_Extended_Command:
-//						std::cout << "\tCommand: " << command << ":Extended Command:" << (uint)curbyte << std::endl;
-						// Uses whole byte
-						switch(curbyte) {
-							case 0x0E: // x-flip next command's bytes
-							case 0x1E:
-								std::cout << "Warning: 0x0E, 0x1E commands not fully implemented" << std::endl;
-								/* @todo implement */
-								break;
-
-							case 0x2E: // set transform colour
-							case 0x3E:
-								std::cout << "Warning: 0x2E, 0x3E commands not fully implemented" << std::endl;
-								/* @todo implement */
-								break;
-
-							case 0x4E: // Draw 'special colour 1', for 1 byte
-							case 0x6E: // Draw 'special colour 2', for 1 byte
-								slpfile.shape[i].row[j].pixel[curpixelpos] = (curbyte == 0x4E) ? 242 : 0;
-								curpixelpos++;
-								break;
-
-							case 0x5E: // Draw 'special colour 1', for (curbyte + 1) bytes
-							case 0x7E: // Draw 'special colour 2', for (curbyte + 1) bytes
-								length = filedata[curpos + 1];
-
-								for (uint it = 0; it < length; it++) {
-									slpfile.shape[i].row[j].pixel[curpixelpos + it] = (curbyte == 0x5E) ? 242 : 0;
-								}
-//								std::cout << "\t\tLength: " << length << '\n';
-								curpixelpos += length;
-								curpos++;
-								break;
-
-							default:
-								std::cout << "CMD_What? " << command << std::endl;
-								/* Debug, as this shouldn't happen */
-								std::cout << filename << '\n';
-								std::string s;
-								getline(std::cin, s);
-								return;
-						}
-						break;
-
-					case CMD_End_Row:
-//						std::cout << "\tCommand: 15:End of row" << std::endl;
-						break;
-
-					default:
-						std::cout << "CMD_What? " << command << std::endl;
-						/* Debug, as this shouldn't happen */
-						std::cout << filename << std::endl;
-						std::string s;
-						getline(std::cin, s);
-						return;
-				}
-				curpos++;
-			} while (command != 0x0F);
-
-		}
-
-		/* @todo Tidy this mess up */
-		std::string filedir = filename.substr(0, filename.rfind(PATHSEP) + 1);
-		std::stringstream bmpfilename;
-		bmpfilename << filedir;
-		bmpfilename << "slpextracted/";
-		GenCreateDirectory(bmpfilename.str());
-		bmpfilename << slpfile.id;
-		bmpfilename << '-';
-		bmpfilename << i;
-		bmpfilename << ".bmp";
-		if (CreateBMP(bmpfilename.str(), &slpfile.shape[i])) {
-//			std::cout << "Saved BMP to: " << bmpfilename.str() << std::endl;
-		}
-
-		for (int j = 0; j < slpfile.shape[i].info.height; j++) {
-			delete[] slpfile.shape[i].row[j].pixel;
-		}
-		delete[] slpfile.shape[i].row;
-
-//		std::cout << std::endl;
+	for (int i = 0; i < slpfile.num_shapes; i++) {
+		slpfile.shapes.push_back(slpfile.ReadShapeInfo(binfile));
 	}
 
-	delete[] slpfile.shape;
+	for (int i = 0; i < slpfile.num_shapes; i++) {
+		/* Get the outline offsets */
+		assert(binfile.GetPosition() == slpfile.shapes[i].outline_offset);
+		for (int j = 0; j < slpfile.shapes[i].height; j++) {
+			slpfile.shapes[i].rows.push_back(slpfile.ReadRowOutlineOffsets(binfile));
+		}
+
+		/* Then get the data offsets */
+		assert(binfile.GetPosition() == slpfile.shapes[i].data_offset);
+		for (int j = 0; j < slpfile.shapes[i].height; j++) {
+			slpfile.shapes[i].rows[j].data_start = binfile.ReadNum<uint>();
+		}
+
+		/* Finally, actually read the data. Silly data format. */
+		for (int j = 0; j < slpfile.shapes[i].height; j++) {
+			assert(binfile.GetPosition() == slpfile.shapes[i].rows[j].data_start);
+			uint16 left  = slpfile.shapes[i].rows[j].left;
+			uint16 right = slpfile.shapes[i].rows[j].right;
+			std::vector<uint8> pix = slpfile.ReadRowData(binfile, slpfile.shapes[i].width, left, right);
+			slpfile.shapes[i].rows[j].pixels = pix;
+		}
+
+		std::string filedir = filename.substr(0, filename.rfind(PATHSEP) + 1);
+		std::string bmpfilepath = filedir + "slpextracted/";
+		GenCreateDirectory(bmpfilepath);
+
+		std::string bmpfilename = std::to_string(slpfile.id);
+		bmpfilename += '-' + std::to_string(i) + ".bmp";
+
+		std::string fullpath = bmpfilepath + bmpfilename;
+		CreateBMP(fullpath, &slpfile.shapes[i]);
+	}
 }
 
 

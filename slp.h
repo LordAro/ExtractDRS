@@ -8,19 +8,20 @@
 #ifndef SLP_H
 #define SLP_H
 
-#include <iostream>
+#include <vector>
 
 #include "extractdrs.h"
+#include "filereader.h"
 
-struct SLP_Header
-{
-	std::string version;
-	uint num_shapes;
-	std::string comment;
+struct SLPRow {
+	std::vector<uint8> pixels; // 8bpp
+	uint16 left;
+	uint16 right;
+	uint data_start; // Position pointer to the start of the actual data
 };
 
-struct SLP_Info
-{
+struct SLPShape {
+	/* Info block */
 	uint data_offset;
 	uint outline_offset;
 	uint palette_offset;
@@ -29,31 +30,27 @@ struct SLP_Info
 	int height;
 	int hotspot_x;
 	int hotspot_y;
+
+	std::vector<SLPRow> rows;
 };
 
-struct SLP_Row
-{
-	uint8* pixel; // 8bpp
-	uint16 left;
-	uint16 right;
-	uint datastart; // start of the data for the row
-};
+class SLPFile {
+public:
+	SLPShape ReadShapeInfo(BinaryFileReader &bfr);
+	SLPRow ReadRowOutlineOffsets(BinaryFileReader &bfr);
+	std::vector<uint8> ReadRowData(BinaryFileReader &bfr, int width, uint16 left, uint16 right);
 
-struct SLP_Shape
-{
-	SLP_Info info;
-	SLP_Row* row;
-};
-
-struct SLP_File
-{
 	int id;
-	SLP_Header header;
-	SLP_Shape* shape;
+
+	/* Header */
+	std::string version;
+	int num_shapes;
+	std::string comment;
+
+	std::vector<SLPShape> shapes;
 };
 
-enum SLP_Commands
-{
+enum SLPCommand {
 	CMD_Lesser_Block_Copy  = 0x00, // also 4, 8, 0x0c
 	CMD_Lesser_Skip        = 0x01, // also 5, 9, 0x0d
 	CMD_Greater_Block_Copy = 0x02,
@@ -69,6 +66,6 @@ enum SLP_Commands
 	CMD_End_Row            = 0x0F,
 };
 
-void ExtractSLPFile(std::string filename);
+void ExtractSLPFile(const std::string &filename);
 
 #endif /* SLP_H */
