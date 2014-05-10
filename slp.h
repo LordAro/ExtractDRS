@@ -50,20 +50,23 @@ public:
 	std::vector<SLPShape> shapes;
 };
 
-enum SLPCommand {
-	CMD_Lesser_Block_Copy  = 0x00, // also 4, 8, 0x0c
-	CMD_Lesser_Skip        = 0x01, // also 5, 9, 0x0d
-	CMD_Greater_Block_Copy = 0x02,
-	CMD_Greater_Skip       = 0x03,
-
-	CMD_Copy_Transform     = 0x06,
-	CMD_Fill               = 0x07,
-
-	CMD_Transform          = 0x0A,
-	CMD_Shadow             = 0x0B,
-
-	CMD_Extended_Command   = 0x0E,
-	CMD_End_Row            = 0x0F,
+enum class SLPCmd {
+	LESSER_BLOCK_COPY_1 = 0x00,
+	LESSER_SKIP_1       = 0x01,
+	GREATER_BLOCK_COPY  = 0x02,
+	GREATER_SKIP        = 0x03,
+	LESSER_BLOCK_COPY_2 = 0x04, ///< Another LBC.
+	LESSER_SKIP_2       = 0x05, ///< Another LS.
+	COPY_TRANSFORM      = 0x06,
+	FILL                = 0x07,
+	LESSER_BLOCK_COPY_3 = 0x08, ///< Another LBC.
+	LESSER_SKIP_3       = 0x09, ///< Another LS.
+	TRANSFORM           = 0x0A,
+	SHADOW              = 0x0B,
+	LESSER_BLOCK_COPY_4 = 0x0C, ///< Another LBC.
+	LESSER_SKIP_4       = 0x0D, ///< Another LS.
+	EXTENDED_COMMAND    = 0x0E,
+	END_ROW             = 0x0F,
 };
 
 void ExtractSLPFile(const std::string &filename);

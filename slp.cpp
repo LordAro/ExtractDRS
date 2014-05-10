@@ -15,9 +15,9 @@
 
 static const uint16 EMPTY_ROW = 0x8000;
 
-SLPCommand GetCommand(uint8 byte)
+SLPCmd GetCommand(uint8 byte)
 {
-	return static_cast<SLPCommand>(byte & 0x0F);
+	return static_cast<SLPCmd>(byte & 0x0F);
 }
 
 SLPShape SLPFile::ReadShapeInfo(BinaryFileReader &bfr)
@@ -50,7 +50,7 @@ std::vector<uint8> SLPFile::ReadRowData(BinaryFileReader &bfr, int width, uint16
 		return pixels;
 	}
 
-	SLPCommand command = CMD_End_Row;
+	SLPCmd command = SLPCmd::END_ROW;
 	uint8 curr_byte = 0;
 
 	uint cur_pixel_pos = left;
@@ -64,10 +64,10 @@ std::vector<uint8> SLPFile::ReadRowData(BinaryFileReader &bfr, int width, uint16
 		command = GetCommand(curr_byte);
 
 		switch(command) {
-			case CMD_Lesser_Block_Copy:
-			case 0x04:
-			case 0x08:
-			case 0x0C:
+			case SLPCmd::LESSER_BLOCK_COPY_1:
+			case SLPCmd::LESSER_BLOCK_COPY_2:
+			case SLPCmd::LESSER_BLOCK_COPY_3:
+			case SLPCmd::LESSER_BLOCK_COPY_4:
 				length = curr_byte >> 2;
 
 				for (uint it = 0; it < length; it++) {
@@ -75,27 +75,27 @@ std::vector<uint8> SLPFile::ReadRowData(BinaryFileReader &bfr, int width, uint16
 				}
 				break;
 
-			case CMD_Lesser_Skip:
-			case 0x05:
-			case 0x09:
-			case 0x0D:
+			case SLPCmd::LESSER_SKIP_1:
+			case SLPCmd::LESSER_SKIP_2:
+			case SLPCmd::LESSER_SKIP_3:
+			case SLPCmd::LESSER_SKIP_4:
 				length = (curr_byte & 0xFC) >> 2;
 				cur_pixel_pos += length;
 				break;
 
-			case CMD_Greater_Block_Copy:
+			case SLPCmd::GREATER_BLOCK_COPY:
 				length = ((curr_byte & 0xF0) << 4) + bfr.ReadNum<uint8>();
 				for (uint it = 0; it < length; it++) {
 					pixels.at(cur_pixel_pos++) = bfr.ReadNum<uint8>();
 				}
 				break;
 
-			case CMD_Greater_Skip:
+			case SLPCmd::GREATER_SKIP:
 				length = ((curr_byte & 0xF0) << 4) + bfr.ReadNum<uint8>();
 				cur_pixel_pos += length;
 				break;
 
-			case CMD_Copy_Transform:
+			case SLPCmd::COPY_TRANSFORM:
 				length = (curr_byte & 0xF0) >> 4; // high nibble
 				if (length == 0) length = bfr.ReadNum<uint8>();
 
@@ -106,7 +106,7 @@ std::vector<uint8> SLPFile::ReadRowData(BinaryFileReader &bfr, int width, uint16
 				}
 				break;
 
-			case CMD_Fill: {
+			case SLPCmd::FILL: {
 				length = (curr_byte & 0xF0) >> 4;
 				if (length == 0) length = bfr.ReadNum<uint8>();
 
@@ -117,7 +117,7 @@ std::vector<uint8> SLPFile::ReadRowData(BinaryFileReader &bfr, int width, uint16
 				break;
 			}
 
-			case CMD_Transform: {
+			case SLPCmd::TRANSFORM: {
 				length = (curr_byte & 0xF0) >> 4;
 				if (length == 0) length = bfr.ReadNum<uint8>();
 
@@ -131,7 +131,7 @@ std::vector<uint8> SLPFile::ReadRowData(BinaryFileReader &bfr, int width, uint16
 				break;
 			}
 
-			case CMD_Shadow:
+			case SLPCmd::SHADOW:
 				length = (curr_byte & 0xF0) >> 4;
 				if (length == 0) length = bfr.ReadNum<uint8>();
 
@@ -140,7 +140,7 @@ std::vector<uint8> SLPFile::ReadRowData(BinaryFileReader &bfr, int width, uint16
 				}
 				break;
 
-			case CMD_Extended_Command:
+			case SLPCmd::EXTENDED_COMMAND:
 				// Uses whole byte
 				switch(curr_byte) {
 					case 0x0E: // x-flip next command's bytes
@@ -175,7 +175,7 @@ std::vector<uint8> SLPFile::ReadRowData(BinaryFileReader &bfr, int width, uint16
 				}
 				break;
 
-			case CMD_End_Row:
+			case SLPCmd::END_ROW:
 				break;
 
 			default:
@@ -183,7 +183,7 @@ std::vector<uint8> SLPFile::ReadRowData(BinaryFileReader &bfr, int width, uint16
 				exit(1); // TODO: Handle better
 		}
 
-	} while (command != CMD_End_Row);
+	} while (command != SLPCmd::END_ROW);
 
 	return pixels;
 }
