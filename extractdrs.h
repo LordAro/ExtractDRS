@@ -9,7 +9,6 @@
 #define EXTRACTDRS_H
 
 #include <string>
-#include <vector>
 
 static const std::string PATHSEP = "/";
 static const std::string EXTRACT_DIR = "extracted" + PATHSEP;
@@ -18,8 +17,5 @@ typedef unsigned char  uint8;
 typedef unsigned short uint16;
 
 void GenCreateDirectory(const std::string &name);
-std::vector<uint8> ReadFile(const std::string &path);
-
-uint vec2uint(const std::vector<uint8> &vec, int offset);
 
 #endif /* EXTRACTDRS_H */
