@@ -19,10 +19,10 @@
  * @note Based on functions in OpenTTD project.
  * @return true iff the file was written.
  */
-bool CreateBMP(const std::string &filename, SLPShape *shape)
+bool CreateBMP(const std::string &filename, const SLPShape &shape)
 {
-	uint width = shape->width;
-	uint height = shape->height;
+	uint width = shape.width;
+	uint height = shape.height;
 
 	std::ofstream f;
 	f.open(filename.c_str(), std::ios::binary);
@@ -92,7 +92,7 @@ bool CreateBMP(const std::string &filename, SLPShape *shape)
 	/* Start at the bottom, since bitmaps are stored bottom up */
 	for (uint n = height; n != 0; n--) {
 		/* Write to file */
-		f.write(reinterpret_cast<char *>(&shape->rows[n - 1].pixels[0]), width);
+		f.write(reinterpret_cast<const char *>(&shape.rows[n - 1].pixels[0]), width);
 		if (bytewidth != width) {
 			char *zeros = new char[bytewidth - width]();
 			f.write(zeros, bytewidth - width);

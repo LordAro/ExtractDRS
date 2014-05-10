@@ -11,7 +11,7 @@
 #include "slp.h"
 #include "extractdrs.h"
 
-bool CreateBMP(const std::string &filename, SLPShape *shape);
+bool CreateBMP(const std::string &filename, const SLPShape &shape);
 
 /** BMP File Header (stored in little endian) */
 struct BitmapFileHeader {

@@ -255,7 +255,7 @@ void ExtractSLPFile(const std::string &filename)
 		bmpfilename += '-' + std::to_string(i) + ".bmp";
 
 		std::string fullpath = bmpfilepath + bmpfilename;
-		CreateBMP(fullpath, &slpfile.shapes[i]);
+		CreateBMP(fullpath, slpfile.shapes[i]);
 	}
 }
 
