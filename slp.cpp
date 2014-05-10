@@ -15,11 +15,6 @@
 
 static const uint16 EMPTY_ROW = 0x8000;
 
-SLPCmd GetCommand(uint8 byte)
-{
-	return static_cast<SLPCmd>(byte & 0x0F);
-}
-
 SLPShape SLPFile::ReadShapeInfo(BinaryFileReader &bfr)
 {
 	SLPShape ss;
@@ -42,6 +37,28 @@ SLPRow SLPFile::ReadRowOutlineOffsets(BinaryFileReader &bfr)
 	return sr;
 }
 
+inline SLPCmd GetCommand(uint8 byte)
+{
+	return static_cast<SLPCmd>(byte & 0x0F);
+}
+
+inline uint GetTop6Bits(uint8 byte)
+{
+	return (byte & 0xFC) >> 2;
+}
+
+inline uint Get4BitsAndNext(uint8 byte1, uint8 byte2)
+{
+	return ((byte1 & 0xF0) << 4) + byte2;
+}
+
+inline uint GetTopNibbleOrNext(uint8 byte, BinaryFileReader& bfr)
+{
+	uint length = (byte & 0xF0) >> 4;
+	if (length == 0) length = bfr.ReadNum<uint8>();
+	return length;
+}
+
 std::vector<uint8> SLPFile::ReadRowData(BinaryFileReader &bfr, int width, uint16 left, uint16 right)
 {
 	std::vector<uint8> pixels(width); // Init with all zeros
@@ -62,13 +79,12 @@ std::vector<uint8> SLPFile::ReadRowData(BinaryFileReader &bfr, int width, uint16
 
 		curr_byte = bfr.ReadNum<uint8>();
 		command = GetCommand(curr_byte);
-
 		switch(command) {
 			case SLPCmd::LESSER_BLOCK_COPY_1:
 			case SLPCmd::LESSER_BLOCK_COPY_2:
 			case SLPCmd::LESSER_BLOCK_COPY_3:
 			case SLPCmd::LESSER_BLOCK_COPY_4:
-				length = curr_byte >> 2;
+				length = GetTop6Bits(curr_byte);
 
 				for (uint it = 0; it < length; it++) {
 					pixels.at(cur_pixel_pos++) = bfr.ReadNum<uint8>();
@@ -79,25 +95,24 @@ std::vector<uint8> SLPFile::ReadRowData(BinaryFileReader &bfr, int width, uint16
 			case SLPCmd::LESSER_SKIP_2:
 			case SLPCmd::LESSER_SKIP_3:
 			case SLPCmd::LESSER_SKIP_4:
-				length = (curr_byte & 0xFC) >> 2;
+				length = GetTop6Bits(curr_byte);
 				cur_pixel_pos += length;
 				break;
 
 			case SLPCmd::GREATER_BLOCK_COPY:
-				length = ((curr_byte & 0xF0) << 4) + bfr.ReadNum<uint8>();
+				length = Get4BitsAndNext(curr_byte, bfr.ReadNum<uint8>());
 				for (uint it = 0; it < length; it++) {
 					pixels.at(cur_pixel_pos++) = bfr.ReadNum<uint8>();
 				}
 				break;
 
 			case SLPCmd::GREATER_SKIP:
-				length = ((curr_byte & 0xF0) << 4) + bfr.ReadNum<uint8>();
+				length = Get4BitsAndNext(curr_byte, bfr.ReadNum<uint8>());
 				cur_pixel_pos += length;
 				break;
 
 			case SLPCmd::COPY_TRANSFORM:
-				length = (curr_byte & 0xF0) >> 4; // high nibble
-				if (length == 0) length = bfr.ReadNum<uint8>();
+				length = GetTopNibbleOrNext(curr_byte, bfr);
 
 				std::cerr << "Warning: SLPCmd::COPY_TRANSFORM not fully implemented" << std::endl;
 				for (uint it = 0; it < length; it++) {
@@ -107,8 +122,7 @@ std::vector<uint8> SLPFile::ReadRowData(BinaryFileReader &bfr, int width, uint16
 				break;
 
 			case SLPCmd::FILL: {
-				length = (curr_byte & 0xF0) >> 4;
-				if (length == 0) length = bfr.ReadNum<uint8>();
+				length = GetTopNibbleOrNext(curr_byte, bfr);
 
 				uint8 fill_col = bfr.ReadNum<uint8>();
 				for (uint it = 0; it < length; it++) {
@@ -118,8 +132,7 @@ std::vector<uint8> SLPFile::ReadRowData(BinaryFileReader &bfr, int width, uint16
 			}
 
 			case SLPCmd::TRANSFORM: {
-				length = (curr_byte & 0xF0) >> 4;
-				if (length == 0) length = bfr.ReadNum<uint8>();
+				length = GetTopNibbleOrNext(curr_byte, bfr);
 
 				std::cerr << "Warning: SLPCmd::TRANSFORM not fully implemented" << std::endl;
 
@@ -132,8 +145,7 @@ std::vector<uint8> SLPFile::ReadRowData(BinaryFileReader &bfr, int width, uint16
 			}
 
 			case SLPCmd::SHADOW:
-				length = (curr_byte & 0xF0) >> 4;
-				if (length == 0) length = bfr.ReadNum<uint8>();
+				length = GetTopNibbleOrNext(curr_byte, bfr);
 
 				for (uint it = 0; it < length; it++) {
 					pixels.at(cur_pixel_pos++) = 56;
@@ -143,7 +155,7 @@ std::vector<uint8> SLPFile::ReadRowData(BinaryFileReader &bfr, int width, uint16
 			case SLPCmd::EXTENDED_COMMAND:
 				// Uses whole byte
 				switch(static_cast<SLPExCmd>(curr_byte)) {
-					case SLPExCmd::X_FLIP_1: // x-flip next command's bytes
+					case SLPExCmd::X_FLIP_1:
 					case SLPExCmd::X_FLIP_2:
 						std::cerr << "Warning: SLPExCmd::X_FLIP_* commands not fully implemented" << std::endl;
 						/* @todo implement */
