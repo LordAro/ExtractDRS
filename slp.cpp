@@ -185,6 +185,8 @@ std::vector<uint8> SLPFile::ReadRowData(BinaryFileReader &bfr, int width, uint16
 
 	} while (command != SLPCmd::END_ROW);
 
+	assert(cur_pixel_pos + right == (uint)width);
+
 	return pixels;
 }
 
