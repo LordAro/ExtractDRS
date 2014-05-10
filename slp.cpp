@@ -99,7 +99,7 @@ std::vector<uint8> SLPFile::ReadRowData(BinaryFileReader &bfr, int width, uint16
 				length = (curr_byte & 0xF0) >> 4; // high nibble
 				if (length == 0) length = bfr.ReadNum<uint8>();
 
-				std::cerr << "Warning: CMD_Copy_Transform not fully implemented" << std::endl;
+				std::cerr << "Warning: SLPCmd::COPY_TRANSFORM not fully implemented" << std::endl;
 				for (uint it = 0; it < length; it++) {
 					/* @todo player colours - some transform function is needed */
 					pixels.at(cur_pixel_pos++) = bfr.ReadNum<uint8>();
@@ -121,7 +121,7 @@ std::vector<uint8> SLPFile::ReadRowData(BinaryFileReader &bfr, int width, uint16
 				length = (curr_byte & 0xF0) >> 4;
 				if (length == 0) length = bfr.ReadNum<uint8>();
 
-				std::cerr << "Warning: CMD_Transform not fully implemented" << std::endl;
+				std::cerr << "Warning: SLPCmd::TRANSFORM not fully implemented" << std::endl;
 
 				/* @todo something...? */
 				uint8 col = bfr.ReadNum<uint8>();
@@ -142,35 +142,35 @@ std::vector<uint8> SLPFile::ReadRowData(BinaryFileReader &bfr, int width, uint16
 
 			case SLPCmd::EXTENDED_COMMAND:
 				// Uses whole byte
-				switch(curr_byte) {
-					case 0x0E: // x-flip next command's bytes
-					case 0x1E:
-						std::cerr << "Warning: 0x0E, 0x1E commands not fully implemented" << std::endl;
+				switch(static_cast<SLPExCmd>(curr_byte)) {
+					case SLPExCmd::X_FLIP_1: // x-flip next command's bytes
+					case SLPExCmd::X_FLIP_2:
+						std::cerr << "Warning: SLPExCmd::X_FLIP_* commands not fully implemented" << std::endl;
 						/* @todo implement */
 						break;
 
-					case 0x2E: // set transform colour
-					case 0x3E:
-						std::cerr << "Warning: 0x2E, 0x3E commands not fully implemented" << std::endl;
+					case SLPExCmd::SET_NORMAL_TRANSFORM:
+					case SLPExCmd::SET_ALTERN_TRANSFORM:
+						std::cerr << "Warning: SLPExCmd::SET_*_TRANSFORM commands not fully implemented" << std::endl;
 						/* @todo implement */
 						break;
 
-					case 0x4E: // Draw 'special colour 1', for 1 byte
-					case 0x6E: // Draw 'special colour 2', for 1 byte
-						pixels.at(cur_pixel_pos++) = (curr_byte == 0x4E) ? 242 : 0;
+					case SLPExCmd::DRAW_SPECIAL_COL_1:
+					case SLPExCmd::DRAW_SPECIAL_COL_2:
+						pixels.at(cur_pixel_pos++) = ((SLPExCmd)curr_byte == SLPExCmd::DRAW_SPECIAL_COL_1) ? 242 : 0;
 						break;
 
-					case 0x5E: // Draw 'special colour 1', for (curr_byte + 1) bytes
-					case 0x7E: // Draw 'special colour 2', for (curr_byte + 1) bytes
+					case SLPExCmd::DRAW_SPECIAL_COL_RUN_1:
+					case SLPExCmd::DRAW_SPECIAL_COL_RUN_2:
 						length = bfr.ReadNum<uint8>();
 
 						for (uint it = 0; it < length; it++) {
-							pixels.at(cur_pixel_pos++) = (curr_byte == 0x5E) ? 242 : 0;
+							pixels.at(cur_pixel_pos++) = ((SLPExCmd)curr_byte == SLPExCmd::DRAW_SPECIAL_COL_RUN_1) ? 242 : 0;
 						}
 						break;
 
 					default:
-						std::cerr << "CMD_Extended_Command_What? " << (uint)command << std::endl;
+						std::cerr << "SLPExCmd::What? " << (uint)command << std::endl;
 						exit(1); // TODO: Handle better
 				}
 				break;
@@ -179,7 +179,7 @@ std::vector<uint8> SLPFile::ReadRowData(BinaryFileReader &bfr, int width, uint16
 				break;
 
 			default:
-				std::cerr << "CMD_What? " << (uint)command << std::endl;
+				std::cerr << "SLPCmd::What? " << (uint)command << std::endl;
 				exit(1); // TODO: Handle better
 		}
 

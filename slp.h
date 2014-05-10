@@ -13,6 +13,36 @@
 #include "extractdrs.h"
 #include "filereader.h"
 
+enum class SLPCmd {
+	LESSER_BLOCK_COPY_1 = 0x00,
+	LESSER_SKIP_1       = 0x01,
+	GREATER_BLOCK_COPY  = 0x02,
+	GREATER_SKIP        = 0x03,
+	LESSER_BLOCK_COPY_2 = 0x04, ///< Another LBC.
+	LESSER_SKIP_2       = 0x05, ///< Another LS.
+	COPY_TRANSFORM      = 0x06,
+	FILL                = 0x07,
+	LESSER_BLOCK_COPY_3 = 0x08, ///< Another LBC.
+	LESSER_SKIP_3       = 0x09, ///< Another LS.
+	TRANSFORM           = 0x0A,
+	SHADOW              = 0x0B,
+	LESSER_BLOCK_COPY_4 = 0x0C, ///< Another LBC.
+	LESSER_SKIP_4       = 0x0D, ///< Another LS.
+	EXTENDED_COMMAND    = 0x0E,
+	END_ROW             = 0x0F,
+};
+
+enum class SLPExCmd {
+	X_FLIP_1               = 0x0E,
+	X_FLIP_2               = 0x1E,
+	SET_NORMAL_TRANSFORM   = 0x2E,
+	SET_ALTERN_TRANSFORM   = 0x3E,
+	DRAW_SPECIAL_COL_1     = 0x4E,
+	DRAW_SPECIAL_COL_RUN_1 = 0x5E,
+	DRAW_SPECIAL_COL_2     = 0x6E,
+	DRAW_SPECIAL_COL_RUN_2 = 0x7E,
+};
+
 struct SLPRow {
 	std::vector<uint8> pixels; // 8bpp
 	uint16 left;
@@ -48,25 +78,6 @@ public:
 	std::string comment;
 
 	std::vector<SLPShape> shapes;
-};
-
-enum class SLPCmd {
-	LESSER_BLOCK_COPY_1 = 0x00,
-	LESSER_SKIP_1       = 0x01,
-	GREATER_BLOCK_COPY  = 0x02,
-	GREATER_SKIP        = 0x03,
-	LESSER_BLOCK_COPY_2 = 0x04, ///< Another LBC.
-	LESSER_SKIP_2       = 0x05, ///< Another LS.
-	COPY_TRANSFORM      = 0x06,
-	FILL                = 0x07,
-	LESSER_BLOCK_COPY_3 = 0x08, ///< Another LBC.
-	LESSER_SKIP_3       = 0x09, ///< Another LS.
-	TRANSFORM           = 0x0A,
-	SHADOW              = 0x0B,
-	LESSER_BLOCK_COPY_4 = 0x0C, ///< Another LBC.
-	LESSER_SKIP_4       = 0x0D, ///< Another LS.
-	EXTENDED_COMMAND    = 0x0E,
-	END_ROW             = 0x0F,
 };
 
 void ExtractSLPFile(const std::string &filename);
