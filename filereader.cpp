@@ -31,7 +31,7 @@ BinaryFileReader::BinaryFileReader(const std::string &filepath)
 /** Destructor. */
 BinaryFileReader::~BinaryFileReader()
 {
-	if (this->fp != nullptr && this->fp.is_open()) this->fp.close();
+	if (this->fp && this->fp.is_open()) this->fp.close();
 }
 
 /**
@@ -41,11 +41,9 @@ BinaryFileReader::~BinaryFileReader()
  */
 std::string BinaryFileReader::ReadString(size_t len)
 {
-	char* temp = new char[len + 1];
-	this->fp.read(temp, len);
-	temp[len] = '\0';
-	std::string str = temp;
-	delete[] temp;
+	std::string str;
+	str.resize(len);
+	this->fp.read(&str[0], len);
 	return str;
 }
 

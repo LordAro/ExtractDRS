@@ -5,7 +5,7 @@
 
 OBJDIR=obj
 
-CXX=clang++
+CXX=clang++ -fsanitize=address -fno-omit-frame-pointer
 CXXFLAGS=-Wall -Wextra -pedantic -g -std=c++11
 
 CXXFILES=bmp.cpp drs.cpp extractdrs.cpp filereader.cpp slp.cpp
