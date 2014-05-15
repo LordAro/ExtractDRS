@@ -55,7 +55,7 @@ void ExtractDRSFile(const std::string &path)
 	std::string filename = path.substr(dirstartpos, path.length() - dirstartpos);
 	std::cout << "Reading " << path << ":\n";
 
-	BinaryFileReader binfile(filename);
+	BinaryFileReader binfile(path);
 	DRSFile drsfile;
 	std::string filedir = EXTRACT_DIR + filename.substr(0, filename.length() - 4) + PATHSEP;
 	std::cout << "Files being extracted to: " << filedir << std::endl;
