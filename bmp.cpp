@@ -92,7 +92,7 @@ bool CreateBMP(const std::string &filename, const SLPShape &shape)
 	/* Start at the bottom, since bitmaps are stored bottom up */
 	for (uint n = height; n != 0; n--) {
 		/* Write to file */
-		f.write(reinterpret_cast<const char *>(&shape.rows[n - 1].pixels[0]), width);
+		f.write(reinterpret_cast<const char *>(&shape.rows.at(n - 1).pixels.at(0)), width);
 		if (bytewidth != width) {
 			char *zeros = new char[bytewidth - width]();
 			f.write(zeros, bytewidth - width);

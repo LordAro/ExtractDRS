@@ -73,7 +73,7 @@ int main(int argc, char **argv)
 
 	GenCreateDirectory(EXTRACT_DIR);
 	for (uint i = 0; i < filelist.size(); i++) {
-		ExtractDRSFile(filelist[i]);
+		ExtractDRSFile(filelist.at(i));
 	}
 	return 0;
 }

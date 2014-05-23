@@ -29,7 +29,7 @@ DRSTableInfo DRSFile::ReadTableInfo(BinaryFileReader &bfr)
 	dti.extension    = bfr.ReadString(3);
 
 	/* Extension is reversed, for whatever reason. */
-	std::swap(dti.extension[0], dti.extension[2]);
+	std::swap(dti.extension.at(0), dti.extension.at(2));
 
 	dti.table_offset = bfr.ReadNum<int>();
 	dti.num_files    = bfr.ReadNum<int>();
@@ -73,31 +73,31 @@ void ExtractDRSFile(const std::string &path)
 	}
 
 	for (int i = 0; i < drsfile.num_tables; i++) {
-		for (int j = 0; j < drsfile.infos[i].num_files; j++) {
-			assert((int)binfile.GetPosition() == drsfile.infos[i].table_offset + j * TABLE_SIZE);
+		for (int j = 0; j < drsfile.infos.at(i).num_files; j++) {
+			assert((int)binfile.GetPosition() == drsfile.infos.at(i).table_offset + j * TABLE_SIZE);
 
-			drsfile.infos[i].file_infos.push_back(drsfile.ReadTable(binfile));
+			drsfile.infos.at(i).file_infos.push_back(drsfile.ReadTable(binfile));
 		}
 	}
 
 	for (int i = 0; i < drsfile.num_tables; i++) {
-		for (int j = 0; j < drsfile.infos[i].num_files; j++) {
-			assert((int)binfile.GetPosition() == drsfile.infos[i].file_infos[j].file_offset);
+		for (int j = 0; j < drsfile.infos.at(i).num_files; j++) {
+			assert((int)binfile.GetPosition() == drsfile.infos.at(i).file_infos.at(j).file_offset);
 
 			std::string out_file = filedir;
-			out_file += std::to_string(drsfile.infos[i].file_infos[j].file_id);
+			out_file += std::to_string(drsfile.infos.at(i).file_infos.at(j).file_id);
 			out_file += '.';
-			out_file += drsfile.infos[i].extension;
+			out_file += drsfile.infos.at(i).extension;
 			std::ofstream out_fs(out_file, std::ios::binary);
 			if (!out_fs.is_open()) {
 				std::cerr << "Error writing to " << out_file << std::endl;
 				/* TODO: Abort instead? */
-				binfile.SkipBytes(drsfile.infos[i].file_infos[j].file_size);
+				binfile.SkipBytes(drsfile.infos.at(i).file_infos.at(j).file_size);
 				continue;
 			}
-			binfile.ReadBlob(out_fs, drsfile.infos[i].file_infos[j].file_size);
+			binfile.ReadBlob(out_fs, drsfile.infos.at(i).file_infos.at(j).file_size);
 			out_fs.close();
-			if (drsfile.infos[i].extension == "slp") {
+			if (drsfile.infos.at(i).extension == "slp") {
 				ExtractSLPFile(out_file);
 			}
 		}

@@ -227,24 +227,24 @@ void ExtractSLPFile(const std::string &filename)
 
 	for (int i = 0; i < slpfile.num_shapes; i++) {
 		/* Get the outline offsets */
-		assert(binfile.GetPosition() == slpfile.shapes[i].outline_offset);
-		for (int j = 0; j < slpfile.shapes[i].height; j++) {
-			slpfile.shapes[i].rows.push_back(slpfile.ReadRowOutlineOffsets(binfile));
+		assert(binfile.GetPosition() == slpfile.shapes.at(i).outline_offset);
+		for (int j = 0; j < slpfile.shapes.at(i).height; j++) {
+			slpfile.shapes.at(i).rows.push_back(slpfile.ReadRowOutlineOffsets(binfile));
 		}
 
 		/* Then get the data offsets */
-		assert(binfile.GetPosition() == slpfile.shapes[i].data_offset);
-		for (int j = 0; j < slpfile.shapes[i].height; j++) {
-			slpfile.shapes[i].rows[j].data_start = binfile.ReadNum<uint>();
+		assert(binfile.GetPosition() == slpfile.shapes.at(i).data_offset);
+		for (int j = 0; j < slpfile.shapes.at(i).height; j++) {
+			slpfile.shapes.at(i).rows.at(j).data_start = binfile.ReadNum<uint>();
 		}
 
 		/* Finally, actually read the data. Silly data format. */
-		for (int j = 0; j < slpfile.shapes[i].height; j++) {
-			assert(binfile.GetPosition() == slpfile.shapes[i].rows[j].data_start);
-			uint16 left  = slpfile.shapes[i].rows[j].left;
-			uint16 right = slpfile.shapes[i].rows[j].right;
-			std::vector<uint8> pix = slpfile.ReadRowData(binfile, slpfile.shapes[i].width, left, right);
-			slpfile.shapes[i].rows[j].pixels = pix;
+		for (int j = 0; j < slpfile.shapes.at(i).height; j++) {
+			assert(binfile.GetPosition() == slpfile.shapes.at(i).rows.at(j).data_start);
+			uint16 left  = slpfile.shapes.at(i).rows.at(j).left;
+			uint16 right = slpfile.shapes.at(i).rows.at(j).right;
+			std::vector<uint8> pix = slpfile.ReadRowData(binfile, slpfile.shapes.at(i).width, left, right);
+			slpfile.shapes.at(i).rows.at(j).pixels = pix;
 		}
 
 		std::string filedir = filename.substr(0, filename.rfind(PATHSEP) + 1);
@@ -255,7 +255,7 @@ void ExtractSLPFile(const std::string &filename)
 		bmpfilename += '-' + std::to_string(i) + ".bmp";
 
 		std::string fullpath = bmpfilepath + bmpfilename;
-		CreateBMP(fullpath, slpfile.shapes[i]);
+		CreateBMP(fullpath, slpfile.shapes.at(i));
 	}
 }
 
