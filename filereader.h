@@ -38,10 +38,11 @@ public:
 
 	size_t GetPosition();
 	size_t GetRemaining();
-
+	const std::string GetFilepath();
 private:
 	std::ifstream fp;     ///< File pointer.
 	size_t file_size = 0; ///< Size of the file.
+	const std::string filepath; ///< The file path.
 };
 
 #endif /* FILEREADER_H */

@@ -17,9 +17,9 @@
  * Constructor.
  * @param filepath File to open.
  */
-BinaryFileReader::BinaryFileReader(const std::string &filepath)
+BinaryFileReader::BinaryFileReader(const std::string &filepath) : filepath(filepath)
 {
-	this->fp.open(filepath, std::ios::binary);
+	this->fp.open(this->GetFilepath(), std::ios::binary);
 	if (!this->fp.is_open()) throw;
 
 	this->fp.seekg(0, this->fp.end);
@@ -84,4 +84,13 @@ size_t BinaryFileReader::GetPosition()
 size_t BinaryFileReader::GetRemaining()
 {
 	return this->file_size - this->GetPosition();
+}
+
+/**
+ * Gets the path and name of the file handle.
+ * @return The filepath.
+ */
+const std::string BinaryFileReader::GetFilepath()
+{
+	return this->filepath;
 }
