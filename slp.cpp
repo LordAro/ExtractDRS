@@ -114,7 +114,7 @@ std::vector<uint8> SLPFile::ReadRowData(BinaryFileReader &bfr, int width, uint16
 			case SLPCmd::COPY_TRANSFORM:
 				length = GetTopNibbleOrNext(curr_byte, bfr);
 
-				std::cerr << "Warning: SLPCmd::COPY_TRANSFORM not fully implemented" << std::endl;
+				std::cerr << "Warning: " << bfr.GetFilepath() << ": SLPCmd::COPY_TRANSFORM not fully implemented" << std::endl;
 				for (uint it = 0; it < length; it++) {
 					/* @todo player colours - some transform function is needed */
 					pixels.at(cur_pixel_pos++) = bfr.ReadNum<uint8>();
@@ -134,7 +134,7 @@ std::vector<uint8> SLPFile::ReadRowData(BinaryFileReader &bfr, int width, uint16
 			case SLPCmd::TRANSFORM: {
 				length = GetTopNibbleOrNext(curr_byte, bfr);
 
-				std::cerr << "Warning: SLPCmd::TRANSFORM not fully implemented" << std::endl;
+				std::cerr << "Warning: " << bfr.GetFilepath() << ": SLPCmd::TRANSFORM not fully implemented" << std::endl;
 
 				/* @todo something...? */
 				uint8 col = bfr.ReadNum<uint8>();
@@ -157,13 +157,13 @@ std::vector<uint8> SLPFile::ReadRowData(BinaryFileReader &bfr, int width, uint16
 				switch(static_cast<SLPExCmd>(curr_byte)) {
 					case SLPExCmd::X_FLIP_1:
 					case SLPExCmd::X_FLIP_2:
-						std::cerr << "Warning: SLPExCmd::X_FLIP_* commands not fully implemented" << std::endl;
+						std::cerr << "Warning: " << bfr.GetFilepath() << ": SLPExCmd::X_FLIP_* commands not fully implemented" << std::endl;
 						/* @todo implement */
 						break;
 
 					case SLPExCmd::SET_NORMAL_TRANSFORM:
 					case SLPExCmd::SET_ALTERN_TRANSFORM:
-						std::cerr << "Warning: SLPExCmd::SET_*_TRANSFORM commands not fully implemented" << std::endl;
+						std::cerr << "Warning: " << bfr.GetFilepath() << ": SLPExCmd::SET_*_TRANSFORM commands not fully implemented" << std::endl;
 						/* @todo implement */
 						break;
 
