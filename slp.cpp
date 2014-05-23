@@ -131,7 +131,7 @@ std::vector<uint8> SLPFile::ReadRowData(BinaryFileReader &bfr, int width, uint16
 				break;
 			}
 
-			case SLPCmd::TRANSFORM: {
+			case SLPCmd::PLAYER_FILL: {
 				length = GetTopNibbleOrNext(curr_byte, bfr);
 
 				/*

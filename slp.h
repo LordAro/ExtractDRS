@@ -24,7 +24,7 @@ enum class SLPCmd {
 	FILL                = 0x07,
 	LESSER_BLOCK_COPY_3 = 0x08, ///< Another LBC.
 	LESSER_SKIP_3       = 0x09, ///< Another LS.
-	TRANSFORM           = 0x0A,
+	PLAYER_FILL         = 0x0A,
 	SHADOW              = 0x0B,
 	LESSER_BLOCK_COPY_4 = 0x0C, ///< Another LBC.
 	LESSER_SKIP_4       = 0x0D, ///< Another LS.
