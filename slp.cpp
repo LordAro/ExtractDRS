@@ -114,10 +114,13 @@ std::vector<uint8> SLPFile::ReadRowData(BinaryFileReader &bfr, int width, uint16
 			case SLPCmd::COPY_TRANSFORM:
 				length = GetTopNibbleOrNext(curr_byte, bfr);
 
-				std::cerr << "Warning: " << bfr.GetFilepath() << ": SLPCmd::COPY_TRANSFORM not fully implemented" << std::endl;
+				/*
+				 * Player colours start at palette index i*16, where 1 <= i <= 8 (8 players)
+				 * They have 8 variants on the same 'line'.
+				 * The player index is currently hardcoded to 0 (blue)
+				 */
 				for (uint it = 0; it < length; it++) {
-					/* @todo player colours - some transform function is needed */
-					pixels.at(cur_pixel_pos++) = bfr.ReadNum<uint8>();
+					pixels.at(cur_pixel_pos++) = bfr.ReadNum<uint8>() + (1 + 1) * 16;
 				}
 				break;
 
@@ -134,12 +137,8 @@ std::vector<uint8> SLPFile::ReadRowData(BinaryFileReader &bfr, int width, uint16
 			case SLPCmd::PLAYER_FILL: {
 				length = GetTopNibbleOrNext(curr_byte, bfr);
 
-				/*
-				 * Player colours start at palette index i*16, where 1 <= i <= 8 (8 players)
-				 * They have 8 variants on the same 'line'.
-				 * The player index is currently hardcoded to 0 (blue)
-				 */
-				uint8 col = bfr.ReadNum<uint8>() + (0 + 1) * 16;
+				/* See SLPCmd::COPY_TRANSFORM */
+				uint8 col = bfr.ReadNum<uint8>() + (1 + 1) * 16;
 				for (uint it = 0; it < length; it++) {
 					pixels.at(cur_pixel_pos++) = col;
 				}
