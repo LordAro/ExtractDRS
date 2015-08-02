@@ -9,12 +9,10 @@
 #define EXTRACTDRS_H
 
 #include <string>
+#include <cstdint>
 
-static const std::string PATHSEP = "/";
-static const std::string EXTRACT_DIR = "extracted" + PATHSEP;
-
-typedef unsigned char  uint8;
-typedef unsigned short uint16;
+constexpr char PATHSEP[] = "/";
+constexpr char EXTRACT_DIR[] = "extracted/";
 
 void GenCreateDirectory(const std::string &name);
 

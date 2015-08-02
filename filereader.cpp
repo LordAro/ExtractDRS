@@ -15,15 +15,15 @@
 
 /**
  * Constructor.
- * @param filepath File to open.
+ * @param path File to open.
  */
-BinaryFileReader::BinaryFileReader(const std::string &filepath) : filepath(filepath)
+BinaryFileReader::BinaryFileReader(const std::string &path) : filepath(path)
 {
 	this->fp.open(this->GetFilepath(), std::ios::binary);
 	if (!this->fp.is_open()) throw;
 
 	this->fp.seekg(0, this->fp.end);
-	this->file_size = this->fp.tellg();
+	this->file_size = static_cast<size_t>(this->fp.tellg());
 
 	this->fp.seekg(0, this->fp.beg);
 }
@@ -43,7 +43,7 @@ std::string BinaryFileReader::ReadString(size_t len)
 {
 	std::string str;
 	str.resize(len);
-	this->fp.read(&str[0], len);
+	this->fp.read(&str[0], static_cast<std::streamsize>(len));
 	return str;
 }
 
@@ -65,7 +65,7 @@ void BinaryFileReader::ReadBlob(std::ostream &os, size_t len)
  */
 void BinaryFileReader::SkipBytes(size_t len)
 {
-	this->fp.seekg(len, std::ios::cur);
+	this->fp.seekg(static_cast<long>(len), std::ios::cur);
 }
 
 /**
@@ -74,7 +74,7 @@ void BinaryFileReader::SkipBytes(size_t len)
  */
 size_t BinaryFileReader::GetPosition()
 {
-	return this->fp.tellg();
+	return static_cast<size_t>(this->fp.tellg());
 }
 
 /**

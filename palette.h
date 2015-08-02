@@ -10,7 +10,7 @@
 
 #include "slp.h"
 
-static const uint8 bmp_palette[256][3] = {
+static const uint8_t bmp_palette[256][3] = {
 	{  0,   0,   0}, // 0 - Black
 	{  0,  74, 161},
 	{  0,  97, 155},

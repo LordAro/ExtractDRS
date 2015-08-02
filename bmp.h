@@ -15,23 +15,35 @@ bool CreateBMP(const std::string &filename, const SLPShape &shape);
 
 /** BMP File Header (stored in little endian) */
 struct BitmapFileHeader {
-	uint16 type;
-	uint size;
-	uint reserved;
-	uint off_bits;
+	uint16_t type;
+	uint32_t size;
+	uint32_t reserved;
+	uint32_t off_bits;
 } __attribute__((packed));
 
 /** BMP Info Header (stored in little endian) */
 struct BitmapInfoHeader {
-	uint size;
-	uint width, height;
-	uint16 planes, bitcount;
-	uint compression, sizeimage, xpels, ypels, clrused, clrimp;
+	uint32_t size;
+	uint32_t width;
+	uint32_t height;
+
+	uint16_t planes;
+	uint16_t bitcount;
+
+	uint32_t compression;
+	uint32_t sizeimage;
+	uint32_t xpels;
+	uint32_t ypels;
+	uint32_t clrused;
+	uint32_t clrimp;
 };
 
 /** Format of palette data in BMP header */
 struct RgbQuad {
-	uint8 blue, green, red, reserved;
+	uint8_t blue;
+	uint8_t green;
+	uint8_t red;
+	uint8_t reserved;
 };
 
 #endif /* BMP_H */

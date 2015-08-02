@@ -18,30 +18,30 @@ void DRSFile::ReadHeader(BinaryFileReader &bfr)
 	this->copyright    = bfr.ReadString(40);
 	this->version      = bfr.ReadString( 4);
 	this->type         = bfr.ReadString(12);
-	this->num_tables   = bfr.ReadNum<int>();
-	this->first_offset = bfr.ReadNum<int>();
+	this->num_tables   = bfr.ReadNum<uint32_t>();
+	this->first_offset = bfr.ReadNum<uint32_t>();
 }
 
 DRSTableInfo DRSFile::ReadTableInfo(BinaryFileReader &bfr)
 {
 	DRSTableInfo dti;
-	dti.character    = bfr.ReadNum<uint8>();
+	dti.character    = bfr.ReadNum<uint8_t>();
 	dti.extension    = bfr.ReadString(3);
 
 	/* Extension is reversed, for whatever reason. */
 	std::swap(dti.extension.at(0), dti.extension.at(2));
 
-	dti.table_offset = bfr.ReadNum<int>();
-	dti.num_files    = bfr.ReadNum<int>();
+	dti.table_offset = bfr.ReadNum<uint32_t>();
+	dti.num_files    = bfr.ReadNum<uint32_t>();
 	return dti;
 }
 
 DRSTable DRSFile::ReadTable(BinaryFileReader &bfr)
 {
 	DRSTable dt;
-	dt.file_id     = bfr.ReadNum<int>();
-	dt.file_offset = bfr.ReadNum<int>();
-	dt.file_size   = bfr.ReadNum<int>();
+	dt.file_id     = bfr.ReadNum<int32_t>();
+	dt.file_offset = bfr.ReadNum<uint32_t>();
+	dt.file_size   = bfr.ReadNum<uint32_t>();
 	return dt;
 }
 
@@ -51,7 +51,7 @@ DRSTable DRSFile::ReadTable(BinaryFileReader &bfr)
  */
 void ExtractDRSFile(const std::string &path)
 {
-    int dirstartpos = path.rfind(PATHSEP) + 1;
+    size_t dirstartpos = path.rfind(PATHSEP) + 1;
 	std::string filename = path.substr(dirstartpos, path.length() - dirstartpos);
 	std::cout << "Reading " << path << ":\n";
 
@@ -68,21 +68,21 @@ void ExtractDRSFile(const std::string &path)
 
 	drsfile.ReadHeader(binfile);
 
-	for (int i = 0; i < drsfile.num_tables; i++) {
+	for (uint32_t i = 0; i < drsfile.num_tables; i++) {
 		drsfile.infos.push_back(drsfile.ReadTableInfo(binfile));
 	}
 
-	for (int i = 0; i < drsfile.num_tables; i++) {
-		for (int j = 0; j < drsfile.infos.at(i).num_files; j++) {
-			assert((int)binfile.GetPosition() == drsfile.infos.at(i).table_offset + j * TABLE_SIZE);
+	for (size_t i = 0; i < drsfile.num_tables; i++) {
+		for (size_t j = 0; j < drsfile.infos.at(i).num_files; j++) {
+			assert(binfile.GetPosition() == drsfile.infos.at(i).table_offset + j * TABLE_SIZE);
 
 			drsfile.infos.at(i).file_infos.push_back(drsfile.ReadTable(binfile));
 		}
 	}
 
-	for (int i = 0; i < drsfile.num_tables; i++) {
-		for (int j = 0; j < drsfile.infos.at(i).num_files; j++) {
-			assert((int)binfile.GetPosition() == drsfile.infos.at(i).file_infos.at(j).file_offset);
+	for (size_t i = 0; i < drsfile.num_tables; i++) {
+		for (size_t j = 0; j < drsfile.infos.at(i).num_files; j++) {
+			assert(binfile.GetPosition() == drsfile.infos.at(i).file_infos.at(j).file_offset);
 
 			std::string out_file = filedir;
 			out_file += std::to_string(drsfile.infos.at(i).file_infos.at(j).file_id);

@@ -16,7 +16,7 @@
 /** Helper class for reading binary files. */
 class BinaryFileReader {
 public:
-	BinaryFileReader(const std::string &filepath);
+	BinaryFileReader(const std::string &path);
 	~BinaryFileReader();
 
 	/**
@@ -40,8 +40,8 @@ public:
 	size_t GetRemaining();
 	const std::string GetFilepath();
 private:
-	std::ifstream fp;     ///< File pointer.
-	size_t file_size = 0; ///< Size of the file.
+	std::ifstream fp; ///< File pointer.
+	size_t file_size; ///< Size of the file.
 	const std::string filepath; ///< The file path.
 };
 

@@ -5,7 +5,7 @@
 
 OBJDIR=obj
 
-CXX=clang++
+CXX=g++
 CXXFLAGS=-Wall -Wextra -pedantic -g -std=c++11
 
 CXXFILES=bmp.cpp drs.cpp extractdrs.cpp filereader.cpp slp.cpp

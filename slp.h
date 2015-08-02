@@ -44,22 +44,22 @@ enum class SLPExCmd {
 };
 
 struct SLPRow {
-	std::vector<uint8> pixels; // 8bpp
-	uint16 left;
-	uint16 right;
-	uint data_start; // Position pointer to the start of the actual data
+	std::vector<uint8_t> pixels; // 8bpp
+	uint16_t left;
+	uint16_t right;
+	uint32_t data_start; // Position pointer to the start of the actual data
 };
 
 struct SLPShape {
 	/* Info block */
-	uint data_offset;
-	uint outline_offset;
-	uint palette_offset;
-	uint properties;
-	int width;
-	int height;
-	int hotspot_x;
-	int hotspot_y;
+	uint32_t data_offset;
+	uint32_t outline_offset;
+	uint32_t palette_offset;
+	uint32_t properties;
+	uint32_t width;
+	uint32_t height;
+	int32_t hotspot_x;
+	int32_t hotspot_y;
 
 	std::vector<SLPRow> rows;
 };
@@ -68,13 +68,13 @@ class SLPFile {
 public:
 	SLPShape ReadShapeInfo(BinaryFileReader &bfr);
 	SLPRow ReadRowOutlineOffsets(BinaryFileReader &bfr);
-	std::vector<uint8> ReadRowData(BinaryFileReader &bfr, int width, uint16 left, uint16 right);
+	std::vector<uint8_t> ReadRowData(BinaryFileReader &bfr, uint32_t width, uint16_t left, uint16_t right);
 
 	int id;
 
 	/* Header */
 	std::string version;
-	int num_shapes;
+	uint32_t num_shapes;
 	std::string comment;
 
 	std::vector<SLPShape> shapes;

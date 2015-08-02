@@ -18,20 +18,20 @@
 #include "filereader.h"
 #include "slp.h"
 
-static const uint8 HEADER_SIZE = 64;
-static const uint8 TABLE_SIZE = 12;
+static const uint8_t HEADER_SIZE = 64;
+static const uint8_t TABLE_SIZE = 12;
 
 struct DRSTable {
-	int file_id;
-	int file_offset;
-	int file_size;
+	int32_t file_id;
+	uint32_t file_offset;
+	uint32_t file_size;
 };
 
 struct DRSTableInfo {
-	char character;
+	uint8_t character;
 	std::string extension;
-	int table_offset;
-	int num_files;
+	uint32_t table_offset;
+	uint32_t num_files;
 	std::vector<DRSTable> file_infos;
 
 };
@@ -46,8 +46,8 @@ public:
 	std::string copyright;
 	std::string version;
 	std::string type;
-	int num_tables;
-	int first_offset;
+	uint32_t num_tables;
+	uint32_t first_offset;
 
 	std::vector<DRSTableInfo> infos;
 };

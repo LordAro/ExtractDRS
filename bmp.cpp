@@ -21,8 +21,8 @@
  */
 bool CreateBMP(const std::string &filename, const SLPShape &shape)
 {
-	uint width = shape.width;
-	uint height = shape.height;
+	uint32_t width = shape.width;
+	uint32_t height = shape.height;
 
 	std::ofstream f;
 	f.open(filename.c_str(), std::ios::binary);
@@ -31,12 +31,12 @@ bool CreateBMP(const std::string &filename, const SLPShape &shape)
 		return false;
 	}
 
-	/* Each scanline must be aligned on a 32bit boundary */
-	uint bytewidth = ((width + 3) & ~3); // bytes per line in file
-	/* (x + (n - 1)) AND FLIP(n - 1) */
+	/* Each scanline must be aligned on a 4 byte boundary
+	 * (x + (n - 1)) AND FLIP(n - 1) */
+	uint32_t bytewidth = (width + 3u) & ~3u; // bytes per line in file
 
 	/* Size of palette */
-	uint pal_size = sizeof(RgbQuad) * 256;
+	const uint32_t pal_size = sizeof(RgbQuad) * 256;
 
 	/* Setup the file header */
 	BitmapFileHeader bfh;
@@ -60,12 +60,12 @@ bool CreateBMP(const std::string &filename, const SLPShape &shape)
 	bih.clrimp = 0;
 
 	/* Write file header and info header */
-	f.write((char *)&bfh, sizeof(BitmapFileHeader));
+	f.write(reinterpret_cast<char *>(&bfh), sizeof(BitmapFileHeader));
 	if (!f.good()) {
 		return false;
 	}
 
-	f.write((char *)&bih, sizeof(BitmapInfoHeader));
+	f.write(reinterpret_cast<char *>(&bih), sizeof(BitmapInfoHeader));
 	if (!f.good()) {
 		return false;
 	}
@@ -78,19 +78,19 @@ bool CreateBMP(const std::string &filename, const SLPShape &shape)
 
 	/* Convert the palette to the windows format */
 	RgbQuad rq[256];
-	for (uint i = 0; i < 256; i++) {
+	for (uint32_t i = 0; i < 256; i++) {
 		rq[i].reserved = 0;
 		rq[i].blue  = bmp_palette[i][BLUE];
 		rq[i].green = bmp_palette[i][GREEN];
 		rq[i].red   = bmp_palette[i][RED];
 	}
 	/* Write the palette */
-	f.write((char *)&rq, sizeof(rq));
+	f.write(reinterpret_cast<char *>(&rq), sizeof(rq));
 	if (!f.good()) {
 		return false;
 	}
 	/* Start at the bottom, since bitmaps are stored bottom up */
-	for (uint n = height; n != 0; n--) {
+	for (uint32_t n = height; n != 0; n--) {
 		/* Write to file */
 		f.write(reinterpret_cast<const char *>(&shape.rows.at(n - 1).pixels.at(0)), width);
 		if (bytewidth != width) {

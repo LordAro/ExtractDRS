@@ -32,7 +32,7 @@ void GenCreateDirectory(const std::string &name)
  * @param path The directory to look in for files
  * @return A list of paths to drs files, in string format
  */
-std::vector<std::string> ListFiles(const char *path)
+static std::vector<std::string> ListFiles(const char *path)
 {
 	std::vector<std::string> filelist;
 	DIR *dirFile = opendir(path);
@@ -72,7 +72,7 @@ int main(int argc, char **argv)
 	std::vector<std::string> filelist = ListFiles(argv[1]);
 
 	GenCreateDirectory(EXTRACT_DIR);
-	for (uint i = 0; i < filelist.size(); i++) {
+	for (size_t i = 0; i < filelist.size(); i++) {
 		ExtractDRSFile(filelist.at(i));
 	}
 	return 0;

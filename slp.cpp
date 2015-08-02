@@ -13,62 +13,62 @@
 #include "filereader.h"
 #include "slp.h"
 
-static const uint16 EMPTY_ROW = 0x8000;
+static const uint16_t EMPTY_ROW = 0x8000;
 
 SLPShape SLPFile::ReadShapeInfo(BinaryFileReader &bfr)
 {
 	SLPShape ss;
-	ss.data_offset    = bfr.ReadNum<uint>();
-	ss.outline_offset = bfr.ReadNum<uint>();
-	ss.palette_offset = bfr.ReadNum<uint>();
-	ss.properties     = bfr.ReadNum<uint>();
-	ss.width          = bfr.ReadNum< int>();
-	ss.height         = bfr.ReadNum< int>();
-	ss.hotspot_x      = bfr.ReadNum< int>();
-	ss.hotspot_y      = bfr.ReadNum< int>();
+	ss.data_offset    = bfr.ReadNum<uint32_t>();
+	ss.outline_offset = bfr.ReadNum<uint32_t>();
+	ss.palette_offset = bfr.ReadNum<uint32_t>();
+	ss.properties     = bfr.ReadNum<uint32_t>();
+	ss.width          = bfr.ReadNum<uint32_t>();
+	ss.height         = bfr.ReadNum<uint32_t>();
+	ss.hotspot_x      = bfr.ReadNum< int32_t>();
+	ss.hotspot_y      = bfr.ReadNum< int32_t>();
 	return ss;
 }
 
 SLPRow SLPFile::ReadRowOutlineOffsets(BinaryFileReader &bfr)
 {
 	SLPRow sr;
-	sr.left  = bfr.ReadNum<uint16>();
-	sr.right = bfr.ReadNum<uint16>();
+	sr.left  = bfr.ReadNum<uint16_t>();
+	sr.right = bfr.ReadNum<uint16_t>();
 	return sr;
 }
 
-inline SLPCmd GetCommand(uint8 byte)
+inline SLPCmd GetCommand(uint8_t byte)
 {
 	return static_cast<SLPCmd>(byte & 0x0F);
 }
 
-inline uint GetTop6Bits(uint8 byte)
+inline uint32_t GetTop6Bits(uint8_t byte)
 {
 	return (byte & 0xFC) >> 2;
 }
 
-inline uint Get4BitsAndNext(uint8 byte1, uint8 byte2)
+inline uint32_t Get4BitsAndNext(uint8_t byte1, uint8_t byte2)
 {
-	return ((byte1 & 0xF0) << 4) + byte2;
+	return ((byte1 & 0xF0u) << 4u) + byte2;
 }
 
-inline uint GetTopNibbleOrNext(uint8 byte, BinaryFileReader& bfr)
+inline uint32_t GetTopNibbleOrNext(uint8_t byte, BinaryFileReader& bfr)
 {
 	uint length = (byte & 0xF0) >> 4;
-	if (length == 0) length = bfr.ReadNum<uint8>();
+	if (length == 0) length = bfr.ReadNum<uint8_t>();
 	return length;
 }
 
-std::vector<uint8> SLPFile::ReadRowData(BinaryFileReader &bfr, int width, uint16 left, uint16 right)
+std::vector<uint8_t> SLPFile::ReadRowData(BinaryFileReader &bfr, uint32_t width, uint16_t left, uint16_t right)
 {
-	std::vector<uint8> pixels(width); // Init with all zeros
+	std::vector<uint8_t> pixels(width); // Init with all zeros
 	if (left == EMPTY_ROW) {
 		bfr.SkipBytes(1); // "Read" the byte regardless
 		return pixels;
 	}
 
 	SLPCmd command = SLPCmd::END_ROW;
-	uint8 curr_byte = 0;
+	uint8_t curr_byte = 0;
 
 	uint cur_pixel_pos = left;
 	do {
@@ -77,7 +77,7 @@ std::vector<uint8> SLPFile::ReadRowData(BinaryFileReader &bfr, int width, uint16
 //		uint8 prev_byte = curr_byte;
 		uint length = 0;
 
-		curr_byte = bfr.ReadNum<uint8>();
+		curr_byte = bfr.ReadNum<uint8_t>();
 		command = GetCommand(curr_byte);
 		switch(command) {
 			case SLPCmd::LESSER_BLOCK_COPY_1:
@@ -86,8 +86,8 @@ std::vector<uint8> SLPFile::ReadRowData(BinaryFileReader &bfr, int width, uint16
 			case SLPCmd::LESSER_BLOCK_COPY_4:
 				length = GetTop6Bits(curr_byte);
 
-				for (uint it = 0; it < length; it++) {
-					pixels.at(cur_pixel_pos++) = bfr.ReadNum<uint8>();
+				for (uint32_t it = 0; it < length; it++) {
+					pixels.at(cur_pixel_pos++) = bfr.ReadNum<uint8_t>();
 				}
 				break;
 
@@ -100,14 +100,14 @@ std::vector<uint8> SLPFile::ReadRowData(BinaryFileReader &bfr, int width, uint16
 				break;
 
 			case SLPCmd::GREATER_BLOCK_COPY:
-				length = Get4BitsAndNext(curr_byte, bfr.ReadNum<uint8>());
-				for (uint it = 0; it < length; it++) {
-					pixels.at(cur_pixel_pos++) = bfr.ReadNum<uint8>();
+				length = Get4BitsAndNext(curr_byte, bfr.ReadNum<uint8_t>());
+				for (uint32_t it = 0; it < length; it++) {
+					pixels.at(cur_pixel_pos++) = bfr.ReadNum<uint8_t>();
 				}
 				break;
 
 			case SLPCmd::GREATER_SKIP:
-				length = Get4BitsAndNext(curr_byte, bfr.ReadNum<uint8>());
+				length = Get4BitsAndNext(curr_byte, bfr.ReadNum<uint8_t>());
 				cur_pixel_pos += length;
 				break;
 
@@ -119,9 +119,9 @@ std::vector<uint8> SLPFile::ReadRowData(BinaryFileReader &bfr, int width, uint16
 				 * They have 8 variants on the same palette 'line'.
 				 * The player index is currently hardcoded to 1 (red)
 				 */
-				int player = 1;
-				for (uint it = 0; it < length; it++) {
-					pixels.at(cur_pixel_pos++) = bfr.ReadNum<uint8>() + (1 + player) * 16;
+				uint8_t player = 1;
+				for (uint32_t it = 0; it < length; it++) {
+					pixels.at(cur_pixel_pos++) = bfr.ReadNum<uint8_t>() + (1 + player) * 16;
 				}
 				break;
 			}
@@ -129,8 +129,8 @@ std::vector<uint8> SLPFile::ReadRowData(BinaryFileReader &bfr, int width, uint16
 			case SLPCmd::FILL: {
 				length = GetTopNibbleOrNext(curr_byte, bfr);
 
-				uint8 fill_col = bfr.ReadNum<uint8>();
-				for (uint it = 0; it < length; it++) {
+				uint8_t fill_col = bfr.ReadNum<uint8_t>();
+				for (uint32_t it = 0; it < length; it++) {
 					pixels.at(cur_pixel_pos++) = fill_col;
 				}
 				break;
@@ -140,8 +140,8 @@ std::vector<uint8> SLPFile::ReadRowData(BinaryFileReader &bfr, int width, uint16
 				length = GetTopNibbleOrNext(curr_byte, bfr);
 
 				/* See SLPCmd::COPY_TRANSFORM */
-				uint8 col = bfr.ReadNum<uint8>() + (1 + 1) * 16;
-				for (uint it = 0; it < length; it++) {
+				uint8_t col = bfr.ReadNum<uint8_t>() + (1 + 1) * 16;
+				for (uint32_t it = 0; it < length; it++) {
 					pixels.at(cur_pixel_pos++) = col;
 				}
 				break;
@@ -172,20 +172,20 @@ std::vector<uint8> SLPFile::ReadRowData(BinaryFileReader &bfr, int width, uint16
 
 					case SLPExCmd::DRAW_SPECIAL_COL_1:
 					case SLPExCmd::DRAW_SPECIAL_COL_2:
-						pixels.at(cur_pixel_pos++) = ((SLPExCmd)curr_byte == SLPExCmd::DRAW_SPECIAL_COL_1) ? 242 : 0;
+						pixels.at(cur_pixel_pos++) = (static_cast<SLPExCmd>(curr_byte) == SLPExCmd::DRAW_SPECIAL_COL_1) ? 242 : 0;
 						break;
 
 					case SLPExCmd::DRAW_SPECIAL_COL_RUN_1:
 					case SLPExCmd::DRAW_SPECIAL_COL_RUN_2:
-						length = bfr.ReadNum<uint8>();
+						length = bfr.ReadNum<uint8_t>();
 
-						for (uint it = 0; it < length; it++) {
-							pixels.at(cur_pixel_pos++) = ((SLPExCmd)curr_byte == SLPExCmd::DRAW_SPECIAL_COL_RUN_1) ? 242 : 0;
+						for (uint8_t it = 0; it < length; it++) {
+							pixels.at(cur_pixel_pos++) = (static_cast<SLPExCmd>(curr_byte) == SLPExCmd::DRAW_SPECIAL_COL_RUN_1) ? 242 : 0;
 						}
 						break;
 
 					default:
-						std::cerr << "SLPExCmd::What? " << (uint)command << std::endl;
+						std::cerr << "SLPExCmd::What? " << static_cast<uint32_t>(command) << std::endl;
 						exit(1); // TODO: Handle better
 				}
 				break;
@@ -194,13 +194,13 @@ std::vector<uint8> SLPFile::ReadRowData(BinaryFileReader &bfr, int width, uint16
 				break;
 
 			default:
-				std::cerr << "SLPCmd::What? " << (uint)command << std::endl;
+				std::cerr << "SLPCmd::What? " << static_cast<uint8_t>(command) << std::endl;
 				exit(1); // TODO: Handle better
 		}
 
 	} while (command != SLPCmd::END_ROW);
 
-	assert(cur_pixel_pos + right == (uint)width);
+	assert(cur_pixel_pos + right == width);
 
 	return pixels;
 }
@@ -221,32 +221,32 @@ void ExtractSLPFile(const std::string &filename)
 	}
 
 	slpfile.version    = binfile.ReadString( 4);
-	slpfile.num_shapes = binfile.ReadNum<int>();
+	slpfile.num_shapes = binfile.ReadNum<uint32_t>();
 	slpfile.comment    = binfile.ReadString(24);
 
-	for (int i = 0; i < slpfile.num_shapes; i++) {
+	for (uint32_t i = 0; i < slpfile.num_shapes; i++) {
 		slpfile.shapes.push_back(slpfile.ReadShapeInfo(binfile));
 	}
 
-	for (int i = 0; i < slpfile.num_shapes; i++) {
+	for (uint32_t i = 0; i < slpfile.num_shapes; i++) {
 		/* Get the outline offsets */
 		assert(binfile.GetPosition() == slpfile.shapes.at(i).outline_offset);
-		for (int j = 0; j < slpfile.shapes.at(i).height; j++) {
+		for (uint32_t j = 0; j < slpfile.shapes.at(i).height; j++) {
 			slpfile.shapes.at(i).rows.push_back(slpfile.ReadRowOutlineOffsets(binfile));
 		}
 
 		/* Then get the data offsets */
 		assert(binfile.GetPosition() == slpfile.shapes.at(i).data_offset);
-		for (int j = 0; j < slpfile.shapes.at(i).height; j++) {
-			slpfile.shapes.at(i).rows.at(j).data_start = binfile.ReadNum<uint>();
+		for (uint32_t j = 0; j < slpfile.shapes.at(i).height; j++) {
+			slpfile.shapes.at(i).rows.at(j).data_start = binfile.ReadNum<uint32_t>();
 		}
 
 		/* Finally, actually read the data. Silly data format. */
-		for (int j = 0; j < slpfile.shapes.at(i).height; j++) {
+		for (uint32_t j = 0; j < slpfile.shapes.at(i).height; j++) {
 			assert(binfile.GetPosition() == slpfile.shapes.at(i).rows.at(j).data_start);
-			uint16 left  = slpfile.shapes.at(i).rows.at(j).left;
-			uint16 right = slpfile.shapes.at(i).rows.at(j).right;
-			std::vector<uint8> pix = slpfile.ReadRowData(binfile, slpfile.shapes.at(i).width, left, right);
+			uint16_t left  = slpfile.shapes.at(i).rows.at(j).left;
+			uint16_t right = slpfile.shapes.at(i).rows.at(j).right;
+			std::vector<uint8_t> pix = slpfile.ReadRowData(binfile, slpfile.shapes.at(i).width, left, right);
 			slpfile.shapes.at(i).rows.at(j).pixels = pix;
 		}
 
