@@ -111,18 +111,20 @@ std::vector<uint8> SLPFile::ReadRowData(BinaryFileReader &bfr, int width, uint16
 				cur_pixel_pos += length;
 				break;
 
-			case SLPCmd::COPY_TRANSFORM:
+			case SLPCmd::COPY_TRANSFORM: {
 				length = GetTopNibbleOrNext(curr_byte, bfr);
 
 				/*
-				 * Player colours start at palette index i*16, where 1 <= i <= 8 (8 players)
-				 * They have 8 variants on the same 'line'.
-				 * The player index is currently hardcoded to 0 (blue)
+				 * Player colours start at palette index i*16, where 1 <= i <= 9 (8 players)
+				 * They have 8 variants on the same palette 'line'.
+				 * The player index is currently hardcoded to 1 (red)
 				 */
+				int player = 1;
 				for (uint it = 0; it < length; it++) {
-					pixels.at(cur_pixel_pos++) = bfr.ReadNum<uint8>() + (1 + 1) * 16;
+					pixels.at(cur_pixel_pos++) = bfr.ReadNum<uint8>() + (1 + player) * 16;
 				}
 				break;
+			}
 
 			case SLPCmd::FILL: {
 				length = GetTopNibbleOrNext(curr_byte, bfr);
@@ -259,5 +261,3 @@ void ExtractSLPFile(const std::string &filename)
 		CreateBMP(fullpath, slpfile.shapes.at(i));
 	}
 }
-
-
